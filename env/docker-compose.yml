@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: env/Dockerfile
+    volumes:
+      - ../app:/app
+    environment:
+      - PYTHONPATH=/app
+    ports:
+      - "8000:8000"
+
