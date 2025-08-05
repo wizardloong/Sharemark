@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Поделиться папкой</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body { width: 300px; padding: 10px; }
+    .folder { cursor: pointer; padding: 5px; }
+    .folder:hover { background: #f0f0f0; }
+  </style>
 </head>
 <body>
-  <h3>Поделиться папкой</h3>
-  <label>
-    <input type="checkbox" id="write-access"> Права на запись
-  </label>
-  <div>
-    <input type="text" id="share-link" readonly>
-    <button id="copy-link">Скопировать</button>
-  </div>
+  <h3>Выберите папку для совместного использования:</h3>
+  <div id="folderTree"></div>
   <script src="popup.js"></script>
 </body>
 </html>

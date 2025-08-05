@@ -1,17 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "ShareMark",
-  "version": "0.1",
-  "description": "Share bookmark folders with others.",
-  "permissions": ["bookmarks", "contextMenus", "storage", "scripting"],
+  "name": "Shared Bookmarks",
+  "version": "1.0",
+  "description": "Расширение для совместного использования папок закладок",
+  "permissions": [
+    "bookmarks",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": ["*://localhost/*"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "ShareMark"
+    "default_popup": "popup.html"
   },
-  "icons": {
-    "48": "icon.png"
-  }
+  "web_accessible_resources": [{
+    "resources": ["share_modal.html"],
+    "matches": ["<all_urls>"]
+  }]
 }

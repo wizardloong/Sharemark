@@ -1,22 +1,26 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import Dict
+from typing import Dict, List
 
 router = APIRouter()
-connections: Dict[str, list[WebSocket]] = {}
+active_connections: Dict[str, List[WebSocket]] = {}
 
-@router.websocket("/ws/sync/{share_id}")
-async def sync_socket(websocket: WebSocket, share_id: str):
+
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket, token: str):
     await websocket.accept()
-    if share_id not in connections:
-        connections[share_id] = []
-    connections[share_id].append(websocket)
+
+    if token not in active_connections:
+        active_connections[token] = []
+    active_connections[token].append(websocket)
 
     try:
         while True:
             data = await websocket.receive_text()
-            # Рассылаем другим
-            for ws in connections[share_id]:
-                if ws != websocket:
-                    await ws.send_text(data)
+            # Relay message to all clients with same token
+            for connection in active_connections[token]:
+                if connection != websocket:
+                    await connection.send_text(data)
     except WebSocketDisconnect:
-        connections[share_id].remove(websocket)
+        active_connections[token].remove(websocket)
+        if not active_connections[token]:
+            del active_connections[token]

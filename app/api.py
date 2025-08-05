@@ -1,29 +1,73 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from uuid import uuid4
+import json
 
 router = APIRouter()
+shared_folders = {}
 
-SHARED_FOLDERS = {}
+
+class SharedFolder:
+    def __init__(self, folder_id, name, bookmarks, can_write):
+        self.share_id = str(uuid4())
+        self.token = str(uuid4())
+        self.folder_id = folder_id
+        self.name = name
+        self.bookmarks = bookmarks
+        self.can_write = can_write
+        self.owner_token = self.token
+
 
 @router.post("/share")
-def create_share(folder_id: str, write: bool = False):
-    share_id = str(uuid4())
-    token = str(uuid4())
+async def share_folder(data: dict):
+    folder_id = data["folder_id"]
+    name = data["name"]
+    bookmarks = data["bookmarks"]
+    can_write = data["can_write"]
 
-    SHARED_FOLDERS[share_id] = {
-        "folder_id": folder_id,
-        "write": write,
-        "token": token,
-        "clients": []
-    }
+    folder = SharedFolder(folder_id, name, bookmarks, can_write)
+    shared_folders[folder.share_id] = folder
 
     return {
-        "share_id": share_id,
-        "token": token,
-        "write": write
+        "share_id": folder.share_id,
+        "token": folder.token,
+        "readOnly": not can_write
     }
 
 
-@router.get("/hello")
-async def share_folder():
-    return {"message": "Folder shared"}
+@router.get("/folder/{share_id}")
+async def get_shared_folder(share_id: str):
+    folder = shared_folders.get(share_id)
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    return {
+        "name": folder.name,
+        "bookmarks": folder.bookmarks,
+        "token": folder.token,
+        "readOnly": not folder.can_write
+    }
+
+
+@router.post("/update/{token}")
+async def update_folder(token: str, update_data: dict):
+    # Find folder by token
+    folder = next((f for f in shared_folders.values() if f.token == token), None)
+    if not folder:
+        raise HTTPException(status_code=404, detail="Invalid token")
+
+    # Apply updates
+    folder.name = update_data.get("name", folder.name)
+    folder.bookmarks = update_data.get("bookmarks", folder.bookmarks)
+
+    # Notify all clients
+    for connection in active_connections.get(token, []):
+        await connection.send_json({
+            "type": "bookmark_update",
+            "data": {
+                "folder_id": folder.folder_id,
+                "name": folder.name,
+                "bookmarks": folder.bookmarks
+            }
+        })
+
+    return {"status": "success"}
