@@ -6,7 +6,10 @@
   "permissions": [
     "bookmarks",
     "scripting",
-    "activeTab"
+    "activeTab",
+    "storage",
+    "webRequest",
+    "webNavigation"
   ],
   "host_permissions": ["*://localhost/*"],
   "background": {
@@ -16,7 +19,7 @@
     "default_popup": "popup.html"
   },
   "web_accessible_resources": [{
-    "resources": ["share_modal.html"],
+    "resources": [""],
     "matches": ["<all_urls>"]
   }]
 }

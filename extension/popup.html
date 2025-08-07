@@ -1,17 +1,17 @@
+<!-- popup.html -->
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-
   <style>
-    body { width: 300px; padding: 10px; }
-    .folder { cursor: pointer; padding: 5px; }
-    .folder:hover { background: #f0f0f0; }
+    .folder-item { display: flex; align-items: center; margin: 8px 0; }
+    .toggle { cursor: pointer; margin-right: 12px; }
+    .toggle.disabled { opacity: 0.5; cursor: not-allowed; }
+    .planet-btn { margin-left: auto; background: none; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h3>Выберите папку для совместного использования:</h3>
-  <div id="folderTree"></div>
+  <div id="foldersList"></div>
   <script src="popup.js"></script>
 </body>
 </html>

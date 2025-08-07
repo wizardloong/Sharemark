@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from uuid import uuid4
 import json
 
+from app.websocket import active_connections
+
 router = APIRouter()
 shared_folders = {}
 
@@ -18,19 +20,22 @@ class SharedFolder:
 
 
 @router.post("/share")
-async def share_folder(data: dict):
-    folder_id = data["folder_id"]
-    name = data["name"]
-    bookmarks = data["bookmarks"]
-    can_write = data["can_write"]
+async def share_folder(data: ShareRequest):  # Используем Pydantic модель
+    if not data.bookmarks:
+        raise HTTPException(400, "Bookmarks cannot be empty")
 
-    folder = SharedFolder(folder_id, name, bookmarks, can_write)
+    folder = SharedFolder(
+        folder_id=data.folder_id,
+        name=data.name,
+        bookmarks=data.bookmarks,
+        can_write=data.can_write
+    )
+
     shared_folders[folder.share_id] = folder
-
     return {
         "share_id": folder.share_id,
         "token": folder.token,
-        "readOnly": not can_write
+        "readOnly": not folder.can_write
     }
 
 
@@ -54,6 +59,9 @@ async def update_folder(token: str, update_data: dict):
     folder = next((f for f in shared_folders.values() if f.token == token), None)
     if not folder:
         raise HTTPException(status_code=404, detail="Invalid token")
+
+    if not folder.can_write:
+        raise HTTPException(status_code=403, detail="Read-only folder")
 
     # Apply updates
     folder.name = update_data.get("name", folder.name)
