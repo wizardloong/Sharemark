@@ -76,9 +76,10 @@ async function handleShare(folder, canWrite) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         folder_id: folder.id,
-        folder_name: folder.title,
+        name: folder.title,
         bookmarks: bookmarks,
-        can_write: canWrite
+        can_write: canWrite,
+        sharemark_uuid: await chrome.storage.local.get('sharemark_uuid')
       })
     });
 

@@ -1,8 +1,8 @@
 let wsConnection = null;
 
 // Подключаемся при запуске браузера
-chrome.runtime.onStartup.addListener(() => {
-  getWsConnection();
+chrome.runtime.onStartup.addListener(async () => {
+  await getWsConnection();
 });
 
 // WebSocket: отправка обновлений по изменениям в мастер-папке
@@ -111,18 +111,19 @@ async function processBookmarkUpdate(update, folderId, isOwner) {
 }
 
 // WebSocket. Приём обновлений
-function initWebSocketConnection(shareId) {
+function initWebSocketConnection(sharemark_uuid) {
   if (wsConnection) {
     wsConnection.close();
   }
 
-  wsConnection = new WebSocket(`wss://localhost:8000/ws/sync?share_id=${shareId}`);
+  wsConnection = new WebSocket(`ws://localhost:8000/ws/sync?share_id=${sharemark_uuid}`);
 
   wsConnection.onmessage = async (event) => {
     const message = JSON.parse(event.data);
 
     if (message.type === 'initial_data') {
       await processInitialData(message.data, message.folderId);
+
     } else if (message.type === 'bookmark_update') {
       await processBookmarkUpdate(message.data, message.folderId, message.isOwner);
     }
@@ -133,8 +134,20 @@ function initWebSocketConnection(shareId) {
   };
 }
 
-function getWsConnection() {
-  const shareId = localStorage.getItem('shareId') || uuidv4();
-  localStorage.setItem('shareId', shareId);
-  initWebSocketConnection(shareId);
+async function getWsConnection() {
+  uuid = await getUuid();
+  if (!uuid) {
+    uuid = crypto.randomUUID(); // или uuidv4(), если ты подключил uuid-библиотеку
+    chrome.storage.local.set({ sharemark_uuid: uuid });
+  }
+
+  initWebSocketConnection(uuid);
+}
+
+function getUuid() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get('sharemark_uuid', (result) => {
+      resolve(result.sharemark_uuid);
+    });
+  });
 }

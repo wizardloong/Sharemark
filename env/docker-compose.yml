@@ -11,4 +11,28 @@ services:
       - PYTHONPATH=/app
     ports:
       - "8000:8000"
+    networks:
+      - back_net
 
+  mysql:
+    image: mysql:8.3
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"  # по желанию, для доступа с хоста
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - back_net
+    restart: always
+
+volumes:
+  mysql_data:
+
+networks:
+  back_net: {}

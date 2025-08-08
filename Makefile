@@ -9,7 +9,7 @@ build:
 
 # Старт окружения
 up:
-	$(DOCKER_COMPOSE) up
+	$(DOCKER_COMPOSE) up -d
 
 # Остановка без удаления данных
 stop:
@@ -20,7 +20,7 @@ down:
 	$(DOCKER_COMPOSE) down
 
 # Перезапуск
-restart: down up
+reup: down up
 
 # Логи
 logs:
