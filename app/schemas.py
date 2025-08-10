@@ -1,14 +1,13 @@
-# schemas.py
-from typing import Optional
-
+from typing import Optional, List
 from pydantic import BaseModel
 
 class ShareRequest(BaseModel):
     folder_id: str
     name: str
-    bookmarks: list
+    bookmarks: List[dict]
     can_write: bool
+    sharemark_uuid: str
 
 class UpdateRequest(BaseModel):
     name: Optional[str]
-    bookmarks: Optional[list]
+    bookmarks: Optional[List[dict]]

@@ -11,6 +11,7 @@ services:
       - PYTHONPATH=/app
     ports:
       - "8000:8000"
+      - "5678:5678"  # debugpy
     networks:
       - back_net
 

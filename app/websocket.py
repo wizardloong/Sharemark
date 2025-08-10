@@ -1,39 +1,34 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import Dict, List
+from data_storage import active_connections, shared_folders
 
 router = APIRouter()
-active_connections: Dict[str, List[WebSocket]] = {}
-shared_folders = {}
 
-
-@router.websocket("/ws")
+@router.websocket("/ws/sync")
 async def websocket_endpoint(websocket: WebSocket, share_id: str):
     await websocket.accept()
 
-    # Проверка валидности токена
-    # if token not in shared_folders:
-    #     await websocket.close(code=1008)
-    #     return
-
-    # Регистрация соединения
+    # Регистрируем соединение
     if share_id not in active_connections:
         active_connections[share_id] = []
     active_connections[share_id].append(websocket)
 
+    print(f"[WS] Подключен клиент к share_id={share_id}")
+
     try:
         while True:
-            data = await websocket.receive_json()
+            message = await websocket.receive_json()
 
-            # Проверка прав на запись
-            # folder = next(f for f in shared_folders.values() if f.token == token)
-            # if not folder.can_write:
-            #     await websocket.send_json({"error": "Read-only access"})
-            #     continue
+            # Если пришло обновление закладок
+            if message.get("type") == "bookmark_update":
+                folder = shared_folders.get(share_id)
+                if folder and folder.can_write:
+                    folder.bookmarks = message.get("data", [])
 
-            # Рассылка обновлений
+            # Рассылаем всем кроме отправителя
             for conn in active_connections[share_id]:
                 if conn != websocket:
-                    await conn.send_json(data)
+                    await conn.send_json(message)
 
-    except WebSocketDisconnect:
+    except WebSocketDisconnect as e:
         active_connections[share_id].remove(websocket)
+        print(f"[WS] Клиент отключен от share_id={share_id}")
