@@ -132,6 +132,10 @@ function initWebSocketConnection(sharemark_uuid) {
   wsConnection.onerror = (error) => {
     console.error('WebSocket error:', error);
   };
+
+  wsConnection.onclose = () => {
+    getWsConnection();
+  };
 }
 
 async function getWsConnection() {

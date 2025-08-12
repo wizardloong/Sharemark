@@ -1,3 +1,5 @@
 .idea/
-*/__pychache__/*
 .vscode/
+app/__pycache__/
+app/models/__pycache__/
+env/migrations/__pycache__/

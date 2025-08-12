@@ -71,6 +71,17 @@ function updateToggleState(element, state) {
 async function handleShare(folder, canWrite) {
   try {
     const bookmarks = await getBookmarksRecursive(folder);
+
+    let suuid = await chrome.storage.local.get('sharemark_uuid');
+
+    console.log(JSON.stringify({
+        folder_id: folder.id,
+        name: folder.title,
+        bookmarks: bookmarks,
+        can_write: canWrite,
+        sharemark_uuid: suuid.sharemark_uuid
+      }));
+      
     const response = await fetch('http://localhost:8000/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -79,7 +90,7 @@ async function handleShare(folder, canWrite) {
         name: folder.title,
         bookmarks: bookmarks,
         can_write: canWrite,
-        sharemark_uuid: await chrome.storage.local.get('sharemark_uuid')
+        sharemark_uuid: suuid.sharemark_uuid
       })
     });
 

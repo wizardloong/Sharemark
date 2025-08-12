@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from storage.mysql import Base
+from models.base import Base
 
 class Share(Base):
     __tablename__ = "shares"
