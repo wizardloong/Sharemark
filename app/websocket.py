@@ -1,34 +1,43 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from data_storage import active_connections, shared_folders
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from data_storage import active_connections
+from repos.share_repo import get_shared_folder
 
 router = APIRouter()
 
 @router.websocket("/ws/sync")
-async def websocket_endpoint(websocket: WebSocket, share_id: str):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    sharemark_uuid: str = Query(...)
+):
     await websocket.accept()
 
-    # Регистрируем соединение
-    if share_id not in active_connections:
-        active_connections[share_id] = []
-    active_connections[share_id].append(websocket)
+    # Регистрируем соединение по UUID пользователя
+    if sharemark_uuid not in active_connections:
+        active_connections[sharemark_uuid] = []
 
-    print(f"[WS] Подключен клиент к share_id={share_id}")
+    active_connections[sharemark_uuid].append(websocket)
 
     try:
         while True:
             message = await websocket.receive_json()
 
-            # Если пришло обновление закладок
-            if message.get("type") == "bookmark_update":
-                folder = shared_folders.get(share_id)
-                if folder and folder.can_write:
-                    folder.bookmarks = message.get("data", [])
 
-            # Рассылаем всем кроме отправителя
-            for conn in active_connections[share_id]:
-                if conn != websocket:
-                    await conn.send_json(message)
+            for folder_data in await get_shared_folder(sharemark_uuid):
 
-    except WebSocketDisconnect as e:
-        active_connections[share_id].remove(websocket)
-        print(f"[WS] Клиент отключен от share_id={share_id}")
+                print(f"[WS] Подключен клиент {sharemark_uuid} "
+                      + "к share_id={folder_data.share_id}")
+
+                # Если пришло обновление закладок
+                if message.get("type") == "bookmark_update":
+                    folder = folder_data
+                    if folder and folder.can_write:
+                        folder.bookmarks = message.get("data", [])
+
+                # Рассылаем всем подключениям владельца, кроме отправителя
+                for conn in active_connections[sharemark_uuid]:
+                    if conn != websocket:
+                        await conn.send_json(message)
+
+    except WebSocketDisconnect:
+        active_connections[sharemark_uuid].remove(websocket)
+        print(f"[WS] Клиент {sharemark_uuid} отключен")

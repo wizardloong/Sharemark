@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   backend:
     build:
@@ -10,11 +8,15 @@ services:
       - .:/env
     environment:
       - PYTHONPATH=/app
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - "8000:8000"
       - "5678:5678"  # debugpy
     networks:
       - back_net
+    depends_on:
+      - redis
 
   mysql:
     image: mysql:8.3
@@ -26,9 +28,17 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"  # по желанию, для доступа с хоста
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - back_net
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"  # если нужно подключаться с хоста
     networks:
       - back_net
     restart: always

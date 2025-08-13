@@ -116,7 +116,7 @@ function initWebSocketConnection(sharemark_uuid) {
     wsConnection.close();
   }
 
-  wsConnection = new WebSocket(`ws://localhost:8000/ws/sync?share_id=${sharemark_uuid}`);
+  wsConnection = new WebSocket(`ws://localhost:8000/ws/sync?sharemark_uuid=${sharemark_uuid}`);
 
   wsConnection.onmessage = async (event) => {
     const message = JSON.parse(event.data);

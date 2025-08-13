@@ -7,3 +7,4 @@ pymysql
 alembic
 debugpy
 cryptography
+redis

@@ -72,16 +72,14 @@ async function handleShare(folder, canWrite) {
   try {
     const bookmarks = await getBookmarksRecursive(folder);
 
-    let suuid = await chrome.storage.local.get('sharemark_uuid');
+    // Достаём UUID владельца
+    const { sharemark_uuid } = await chrome.storage.local.get('sharemark_uuid');
+    if (!sharemark_uuid) {
+      alert("Ошибка: не найден sharemark_uuid. Проверьте настройки расширения.");
+      return;
+    }
 
-    console.log(JSON.stringify({
-        folder_id: folder.id,
-        name: folder.title,
-        bookmarks: bookmarks,
-        can_write: canWrite,
-        sharemark_uuid: suuid.sharemark_uuid
-      }));
-      
+    // Отправляем на бэкенд
     const response = await fetch('http://localhost:8000/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -90,17 +88,28 @@ async function handleShare(folder, canWrite) {
         name: folder.title,
         bookmarks: bookmarks,
         can_write: canWrite,
-        sharemark_uuid: suuid.sharemark_uuid
+        sharemark_uuid
       })
     });
 
     const data = await response.json();
-    showShareUrl(data.share_url);
+    if (!response.ok) {
+      throw new Error(data.detail || 'Ошибка при создании расшаривания');
+    }
 
+    // Формируем ссылку на фронтенд-страницу open-share
+    const shareUrl = `chrome-extension://${chrome.runtime.id}/open_share.html?share_id=${data.share_id}`;
+
+    // Копируем в буфер обмена
+    await navigator.clipboard.writeText(shareUrl);
+    alert("Ссылка скопирована в буфер обмена:\n" + shareUrl);
+
+    // Инициируем вебсокет соединение у владельца
     chrome.runtime.sendMessage({ type: 'initWebSocket', shareId: data.share_id });
 
   } catch (error) {
     console.error('Ошибка:', error.message);
+    alert("Ошибка: " + error.message);
   }
 }
 
@@ -120,16 +129,4 @@ async function getBookmarksRecursive(node) {
 
   await traverse(node);
   return bookmarks;
-}
-
-function showShareUrl(url) {
-  const modal = document.createElement('div');
-  modal.innerHTML = `
-    <div class="share-modal">
-      <p>Ссылка для доступа:</p>
-      <input type="text" value="${url}" readonly>
-      <button onclick="navigator.clipboard.writeText('${url}')">Копировать</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
 }

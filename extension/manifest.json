@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Shared Bookmarks",
+  "name": "Sharemark",
   "version": "1.0",
   "description": "Расширение для совместного использования папок закладок",
   "permissions": [
@@ -19,7 +19,7 @@
     "default_popup": "popup.html"
   },
   "web_accessible_resources": [{
-    "resources": [""],
+    "resources": ["open_share.html", "open_share.js"],
     "matches": ["<all_urls>"]
   }]
 }

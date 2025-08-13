@@ -11,3 +11,14 @@ class ShareRequest(BaseModel):
 class UpdateRequest(BaseModel):
     name: Optional[str]
     bookmarks: Optional[List[dict]]
+
+class Bookmark(BaseModel):
+    title: str
+    url: str
+
+class SharedFolder(BaseModel):
+    folder_id: str
+    name: str
+    bookmarks: List[Bookmark]
+    can_write: bool
+    owner_uuid: str
