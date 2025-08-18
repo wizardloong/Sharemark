@@ -5,6 +5,7 @@ from schemas import ShareRequest
 from uuid import uuid4
 from repos.share_repo import generateShareUrl, get_shared_folder, save_shared_folder
 from schemas import SharedFolder
+from infrastructure.rabbitmq import rabbit
 
 router = APIRouter()
 
@@ -21,47 +22,36 @@ async def share_folder(data: ShareRequest):
         owner_uuid=data.sharemark_uuid # uuid того кто делится
     )
 
-    shared_folders = await get_shared_folder(folder.owner_uuid)
+    folder_key = folder.owner_uuid + "_" + folder.folder_id
 
-    if folder.owner_uuid not in shared_folders:
-            shared_folders[folder.owner_uuid] = []
+    shared_folders = await get_shared_folder(folder_key)
+    if folder_key not in shared_folders:
+            shared_folders[folder_key] = []
 
-    shared_folders[folder.owner_uuid].append(folder)
-    await save_shared_folder(folder.owner_uuid, shared_folders)
-    share_url = generateShareUrl(folder.folder_id, data.sharemark_uuid)
+    shared_folders[folder_key] = folder
+
+    # if not any(f["folder_id"] == folder.folder_id for f in shared_folders[folder_key]):
+    #     shared_folders[folder_key].append(folder)
+
+    await save_shared_folder(folder_key, shared_folders)
+    share_url = generateShareUrl(folder_key, data.sharemark_uuid)
 
     return {
-        "share_id": folder.folder_id,
+        "share_id": folder_key,
         "share_url": share_url,
     }
 
 
+# просто поместить задачу в очередь, спасибо
 @router.get("/share")
 async def get_share(
     share_id: str = Query(..., description="ID расшариваемой папки"),
     sharemark_uuid: str = Query(..., description="UUID владельца, хранящийся в локальном хранилище")
 ):
-    # Находим активные соединения пользователя
-    connections = active_connections.get(sharemark_uuid)
-    if not connections:
-        raise HTTPException(404, "Активное соединение пользователя не найдено")
+    payload = {
+        "sharemark_uuid": sharemark_uuid,
+        "share_id": share_id
+    }
 
-    # Находим данные папки
-    folder = await get_shared_folder(share_id)
-
-    # тут на самом деде список папок и надо найти какой поделиться
-    if not folder:
-        raise HTTPException(404, "Данные для указанного share_id не найдены")
-
-    # Отправляем данные по всем соединениям пользователя
-    for ws in connections:
-        await ws.send_json({
-            "type": "shared_folder_data",
-            "share_id": share_id,
-            "folder_id": folder.folder_id,
-            "name": folder.name,
-            "bookmarks": folder.bookmarks,
-            "can_write": folder.can_write
-        })
-
-    return {"status": "ok", "message": "Данные отправлены по активному WebSocket-соединению"}
+    # Отправляем в очередь
+    await rabbit.publish(payload)

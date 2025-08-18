@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from fastapi import WebSocket
 from pydantic import TypeAdapter
 
-BASE_URL = "http://localhost:3000/open-share?share_id="
+BASE_URL = "localhost:8000/get_sharemark_share?share_id="
 
 def generateShareUrl(share_id: str, master_uuid: str) -> str:
     db = next(get_db())

@@ -3,6 +3,7 @@
 app/__pycache__/
 app/models/__pycache__/
 env/migrations/__pycache__/
+app/infrastructure/__pycache__/
 app/repos/__pycache__/
 app/storage/__pycache__/
 env/migrations/versions/__pycache__

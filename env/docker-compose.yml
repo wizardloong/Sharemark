@@ -10,13 +10,39 @@ services:
       - PYTHONPATH=/app
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
     ports:
       - "8000:8000"
       - "5678:5678"  # debugpy
+      - "5679:5679"  # debugpy consumer
     networks:
       - back_net
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  consumer:
+    build:
+      context: ..
+      dockerfile: env/Dockerfile
+    volumes:
+      - ../app:/app
+      - .:/env
+    environment:
+      - PYTHONPATH=/app
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
+    networks:
+      - back_net
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: python /app/infrastructure/consumers/shared_folder_consumer.py  # путь до твоего consumer-скрипта
 
   mysql:
     image: mysql:8.3
@@ -38,10 +64,30 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"  # если нужно подключаться с хоста
+      - "6379:6379"
     networks:
       - back_net
     restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    env_file:
+      - .env
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - back_net
+    restart: always
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:

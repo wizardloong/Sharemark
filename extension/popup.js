@@ -98,7 +98,8 @@ async function handleShare(folder, canWrite) {
     }
 
     // Формируем ссылку на фронтенд-страницу open-share
-    const shareUrl = `chrome-extension://${chrome.runtime.id}/open_share.html?share_id=${data.share_id}`;
+    // const shareUrl = `chrome-extension://${chrome.runtime.id}/open_share.html?share_id=${data.share_id}`;
+    const shareUrl = data.share_url;
 
     // Копируем в буфер обмена
     await navigator.clipboard.writeText(shareUrl);

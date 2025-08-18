@@ -9,7 +9,9 @@
     "activeTab",
     "storage",
     "webRequest",
-    "webNavigation"
+    "webNavigation",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": ["*://localhost/*"],
   "background": {
