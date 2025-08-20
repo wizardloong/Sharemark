@@ -13,7 +13,7 @@
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
   ],
-  "host_permissions": ["*://localhost/*"],
+  "host_permissions": ["*://getsharemark.com/*"],
   "background": {
     "service_worker": "background.js"
   },

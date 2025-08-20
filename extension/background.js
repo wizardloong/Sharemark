@@ -28,7 +28,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     console.log("Запрос на get_sharemark_share:", details.url);
     await getWsConnection(); // Откроем WS при первом запросе
   },
-  { urls: ["http://localhost:8000/get_sharemark_share*"] },
+  { urls: ["https://getsharemark.com:8000/get_sharemark_share*"] },
   []
 );
 
@@ -171,7 +171,7 @@ async function initWebSocketConnection() {
 
     console.log("Подключаем WS с UUID:", sharemark_uuid);
 
-    wsConnection = new WebSocket(`ws://localhost:8000/ws/sync?sharemark_uuid=${sharemark_uuid}`);
+    wsConnection = new WebSocket(`ws://getsharemark.com:8000/ws/sync?sharemark_uuid=${sharemark_uuid}`);
 
     wsConnection.onopen = () => {
       console.log("WS соединение установлено");
@@ -251,7 +251,7 @@ async function updateRedirectRule() {
           }
         },
         condition: {
-          urlFilter: "localhost:8000/get_sharemark_share",
+          urlFilter: "getsharemark.com:8000/get_sharemark_share",
           resourceTypes: ["main_frame"]
         }
       }

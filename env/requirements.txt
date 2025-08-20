@@ -9,3 +9,5 @@ debugpy
 cryptography
 redis
 aio_pika
+sentry-sdk
+prometheus_client
