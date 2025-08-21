@@ -29,18 +29,19 @@ async function renderFolders(folders) {
     const item = document.createElement('div');
     item.className = 'folder-item';
 
-    const toggle = document.createElement('div');
-    toggle.className = 'toggle';
-    toggle.dataset.folderId = folder.id;
-    const initialState = folderStates[folder.id]?.state || 0;
-    updateToggleState(toggle, initialState);
+    // const toggle = document.createElement('div');
+    // toggle.className = 'toggle';
+    // toggle.dataset.folderId = folder.id;
+    // const initialState = folderStates[folder.id]?.state || 0;
+    const initialState = folderStates[folder.id]?.state || 1; // Default to 1 (read-only)
+    // updateToggleState(toggle, initialState);
 
-    toggle.addEventListener('click', async () => {
-      const currentState = parseInt(toggle.dataset.state);
-      const newState = (currentState + 1) % 3;
-      await saveToggleState(folder.id, newState);
-      updateToggleState(toggle, newState);
-    });
+    // toggle.addEventListener('click', async () => {
+    //   const currentState = parseInt(toggle.dataset.state);
+      // const newState = (currentState + 1) % 3;
+      // await saveToggleState(folder.id, newState);
+      // updateToggleState(toggle, newState);
+    // });
 
     const title = document.createElement('span');
     title.textContent = folder.title;
@@ -50,7 +51,8 @@ async function renderFolders(folders) {
     planetBtn.className = 'planet-btn';
     planetBtn.addEventListener('click', () => handleShare(folder, initialState === 2));
 
-    item.append(toggle, title, planetBtn);
+    // item.append(toggle, title, planetBtn);
+    item.append(title, planetBtn);
     container.appendChild(item);
   });
 }
@@ -68,12 +70,22 @@ function updateToggleState(element, state) {
   element.dataset.state = state;
 }
 
+async function getUuid() {
+  const { sharemark_uuid } = await chrome.storage.local.get("sharemark_uuid");
+  if (!sharemark_uuid) {
+    const uuid = crypto.randomUUID();
+    await chrome.storage.local.set({ sharemark_uuid: uuid });
+    return uuid;
+  }
+  return sharemark_uuid;
+}
+
 async function handleShare(folder, canWrite) {
   try {
     const bookmarks = await getBookmarksRecursive(folder);
 
     // Достаём UUID владельца
-    const { sharemark_uuid } = await chrome.storage.local.get('sharemark_uuid');
+    const sharemark_uuid = await getUuid();
     if (!sharemark_uuid) {
       alert("Ошибка: не найден sharemark_uuid. Проверьте настройки расширения.");
       return;

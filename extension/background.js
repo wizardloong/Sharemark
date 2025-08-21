@@ -171,7 +171,7 @@ async function initWebSocketConnection() {
 
     console.log("Подключаем WS с UUID:", sharemark_uuid);
 
-    wsConnection = new WebSocket(`ws://getsharemark.com/ws/sync?sharemark_uuid=${sharemark_uuid}`);
+    wsConnection = new WebSocket(`wss://getsharemark.com/ws/sync?sharemark_uuid=${sharemark_uuid}`);
 
     wsConnection.onopen = () => {
       console.log("WS соединение установлено");
