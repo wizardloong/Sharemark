@@ -1,0 +1,13 @@
+{
+  "name": "sharemark-extension-tests",
+  "version": "1.0.0",
+  "description": "Тесты для расширения Sharemark",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.5",
+    "jsdom": "^22.1.0"
+  }
+}

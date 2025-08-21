@@ -89,6 +89,16 @@ services:
       timeout: 5s
       retries: 5
 
+  extension-test:
+    container_name: extension-test
+    image: node:20-alpine
+    working_dir: /extension
+    volumes:
+      - ../extension:/extension
+    command: sh -c "npm install --save-dev jest jsdom jest-environment-jsdom && npm test"
+    networks:
+      - back_net
+
 volumes:
   mysql_data:
 

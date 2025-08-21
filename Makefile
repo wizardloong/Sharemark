@@ -37,3 +37,8 @@ ps:
 # Очистка всего (контейнеров, образов, томов)
 prune:
 	docker system prune -a --volumes --force
+
+# Запуск тестов в контейнере backend
+test:
+	$(DOCKER_COMPOSE) exec backend pytest --tb=short --color=yes
+	$(DOCKER_COMPOSE) run --rm extension-test

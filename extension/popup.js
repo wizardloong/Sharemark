@@ -143,3 +143,13 @@ async function getBookmarksRecursive(node) {
   await traverse(node);
   return bookmarks;
 }
+
+module.exports = {
+  getUuid,
+  handleShare,
+  updateToggleState,
+  saveToggleState,
+  getBookmarksRecursive,
+  getBookmarkFolders,
+  renderFolders,
+};

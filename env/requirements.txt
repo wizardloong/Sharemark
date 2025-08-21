@@ -11,3 +11,6 @@ redis
 aio_pika
 sentry-sdk
 prometheus_client
+pytest
+pytest-asyncio
+httpx
