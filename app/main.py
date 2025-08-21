@@ -1,5 +1,6 @@
 from pathlib import Path
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -18,24 +19,22 @@ sentry_sdk.init(
     traces_sample_rate=1.0,
 )
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    redis = get_redis()
+    await redis.ping()
+    print("✅ Redis connected")
+    await rabbit.connect()
+    task = asyncio.create_task(start_redis_subscriber())
+    yield
+    # Shutdown
+    await redis.close()
+    print("🔴 Redis disconnected")
+    task.cancel()
+
+app = FastAPI(lifespan=lifespan)
 
 # Подключаем маршруты
 app.include_router(api_router, prefix="/api")
 app.include_router(ws_router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    redis = get_redis()
-    await redis.ping()
-    print("✅ Redis connected")
-    # Подключаемся к RabbitMQ при старте приложения
-    await rabbit.connect()
-    asyncio.create_task(start_redis_subscriber())
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    redis = get_redis()
-    await redis.close()
-    print("🔴 Redis disconnected")
