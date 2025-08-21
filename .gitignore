@@ -8,3 +8,5 @@ app/repos/__pycache__/
 app/storage/__pycache__/
 env/migrations/versions/__pycache__
 env/.env
+app/tests/
+extension/node_modules/
