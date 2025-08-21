@@ -80,7 +80,7 @@ async function handleShare(folder, canWrite) {
     }
 
     // Отправляем на бэкенд
-    const response = await fetch('https://getsharemark.com:8000/api/share', {
+    const response = await fetch('https://getsharemark.com/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
