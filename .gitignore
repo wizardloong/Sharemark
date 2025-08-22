@@ -10,3 +10,5 @@ env/migrations/versions/__pycache__
 env/.env
 app/tests/
 extension/node_modules/
+extension/__tests__/
+extension/package.json
