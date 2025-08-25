@@ -5,21 +5,23 @@ from sqlalchemy.exc import NoResultFound
 from storage.mysql import get_db
 from models.share import Share
 from schemas import SharedFolder
-from storage.redis import get_redis
-from typing import Dict, List, Optional
-from fastapi import WebSocket
+
+import msgpack
+from typing import Dict, Optional
 from pydantic import TypeAdapter
+from storage.redis import get_redis
+from schemas import SharedFolder
 
 BASE_URL = "getsharemark.com/get_sharemark_share?share_id="
 
 def generateShareUrl(share_id: str, master_uuid: str) -> str:
     db = next(get_db())
     try:
-        share = db.query(Share).filter_by(uuid=share_id).one()
+        share = db.query(Share).filter_by(share_id=share_id).one()
     except NoResultFound:
         share_url = f"{BASE_URL}{share_id}"
         share = Share(
-            uuid=share_id,
+            share_id=share_id,
             master_uuid=master_uuid,
             share_url=share_url,
         )
@@ -28,27 +30,45 @@ def generateShareUrl(share_id: str, master_uuid: str) -> str:
         db.refresh(share)
     return share.share_url
 
-
-# Ключи в Redis будем формировать как "shared_folder:{share_id}"
 def redis_key(share_id: str) -> str:
     return f"shared_folder:{share_id}"
 
+TTL_SECONDS = 15 * 60  # 15 минут
 async def save_shared_folder(share_id: str, folder_data: dict):
+    """
+    Сохраняет данные папки в Redis с TTL и сериализацией через MsgPack.
+    folder_data: dict[str, SharedFolder]
+    """
     redis = get_redis()
     assert redis is not None, "Redis client not initialized"
+    
     adapter = TypeAdapter(dict[str, SharedFolder])
-    data_json = adapter.dump_json(folder_data).decode()
-    await redis.set(redis_key(share_id), data_json)
+    # Сначала сериализуем Pydantic модели в словарь, затем в MsgPack
+    dict_data = {k: v.model_dump() for k, v in folder_data.items()}
+    packed_data = msgpack.packb(dict_data, use_bin_type=True)
+    await redis.set(redis_key(share_id), packed_data, ex=TTL_SECONDS)
 
 async def get_shared_folder(share_id: str) -> Optional[dict]:
+    """
+    Получает данные папки из Redis и десериализует.
+    Возвращает dict[str, SharedFolder] или пустой словарь.
+    """
     redis = get_redis()
     assert redis is not None, "Redis client not initialized"
-    data_json = await redis.get(redis_key(share_id))
-    if not data_json:
+    
+    packed_data = await redis.get(redis_key(share_id))
+    if not packed_data:
         return {}
-    return json.loads(data_json)
+    
+    dict_data = msgpack.unpackb(packed_data, raw=False)
+    
+    # Можно сразу вернуть как Pydantic модели:
+    return {k: SharedFolder.model_validate(v) for k, v in dict_data.items()}
 
 async def delete_shared_folder(share_id: str):
+    """
+    Удаляет данные папки из Redis.
+    """
     redis = get_redis()
     assert redis is not None, "Redis client not initialized"
     await redis.delete(redis_key(share_id))
