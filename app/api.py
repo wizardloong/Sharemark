@@ -8,12 +8,17 @@ from infrastructure.rabbitmq import rabbit
 
 router = APIRouter()
 
+async def get_sharemark_uuid(request: Request) -> str:
+    data = await request.json()
+    return data.get("sharemark_uuid")
+
 # 🔹 POST /api/share: 5 запросов в минуту на sharemark_uuid
-@router.post(
-    "/share",
-    dependencies=[Depends(RateLimiter(times=5, seconds=60, key_func=lambda req: req.json().get("sharemark_uuid")))],
-)
-async def share_folder(data: ShareRequest, request: Request):
+@router.post("/share")
+async def share_folder(
+    data: ShareRequest, 
+    request: Request,
+    _=Depends(RateLimiter(times=5, seconds=60, identifier=get_sharemark_uuid))
+):
     if not data.bookmarks:
         raise HTTPException(400, "Bookmarks cannot be empty")
 
@@ -39,13 +44,11 @@ async def share_folder(data: ShareRequest, request: Request):
 
 
 # 🔹 GET /api/share: 10 запросов в секунду на IP, burst=20
-@router.get(
-    "/share",
-    dependencies=[Depends(RateLimiter(times=10, seconds=1, burst=20))],
-)
+@router.get("/share")
 async def get_share(
     share_id: str = Query(..., description="ID расшариваемой папки"),
     sharemark_uuid: str = Query(..., description="UUID владельца, хранящийся в локальном хранилище"),
+    _=Depends(RateLimiter(times=10, seconds=1))  # лимит на IP
 ):
     payload = {"sharemark_uuid": sharemark_uuid, "share_id": share_id}
 
