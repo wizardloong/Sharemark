@@ -14,3 +14,4 @@ prometheus_client
 pytest
 pytest-asyncio
 httpx
+fastapi-limiter

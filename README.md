@@ -19,3 +19,18 @@ alembic current
 
 # Список всех миграций
 alembic history
+
+
+## Чтобы протестировать
+
+```
+git checkout test
+git pull
+
+# на всякий случай перебилдить всё
+make build
+make reup
+
+# запуск тестов!
+make test
+```
