@@ -12,3 +12,4 @@ aio_pika
 sentry-sdk
 prometheus_client
 fastapi-limiter
+msgpack
