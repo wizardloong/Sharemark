@@ -9,6 +9,7 @@ app/storage/__pycache__/
 env/migrations/versions/__pycache__
 env/.env
 app/tests/__pycache__/
+env/__pycache__/
 extension/node_modules/
 extension/__tests__/
 extension/package.json
