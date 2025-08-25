@@ -1,16 +1,19 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
+from fastapi_limiter.depends import RateLimiter
 from fastapi.responses import JSONResponse
 from data_storage import active_connections
-from schemas import ShareRequest
-from uuid import uuid4
+from schemas import ShareRequest, SharedFolder
 from repos.share_repo import generateShareUrl, get_shared_folder, save_shared_folder
-from schemas import SharedFolder
 from infrastructure.rabbitmq import rabbit
 
 router = APIRouter()
 
-@router.post("/share")
-async def share_folder(data: ShareRequest):
+# 🔹 POST /api/share: 5 запросов в минуту на sharemark_uuid
+@router.post(
+    "/share",
+    dependencies=[Depends(RateLimiter(times=5, seconds=60, key_func=lambda req: req.json().get("sharemark_uuid")))],
+)
+async def share_folder(data: ShareRequest, request: Request):
     if not data.bookmarks:
         raise HTTPException(400, "Bookmarks cannot be empty")
 
@@ -19,39 +22,33 @@ async def share_folder(data: ShareRequest):
         name=data.name,
         bookmarks=data.bookmarks,
         can_write=data.can_write,
-        owner_uuid=data.sharemark_uuid # uuid того кто делится
+        owner_uuid=data.sharemark_uuid,
     )
 
     folder_key = folder.owner_uuid + "_" + folder.folder_id
-
     shared_folders = await get_shared_folder(folder_key)
     if folder_key not in shared_folders:
-            shared_folders[folder_key] = []
+        shared_folders[folder_key] = []
 
     shared_folders[folder_key] = folder
-
-    # if not any(f["folder_id"] == folder.folder_id for f in shared_folders[folder_key]):
-    #     shared_folders[folder_key].append(folder)
-
     await save_shared_folder(folder_key, shared_folders)
+
     share_url = generateShareUrl(folder_key, data.sharemark_uuid)
 
-    return {
-        "share_id": folder_key,
-        "share_url": share_url,
-    }
+    return {"share_id": folder_key, "share_url": share_url}
 
 
-# просто поместить задачу в очередь, спасибо
-@router.get("/share")
+# 🔹 GET /api/share: 10 запросов в секунду на IP, burst=20
+@router.get(
+    "/share",
+    dependencies=[Depends(RateLimiter(times=10, seconds=1, burst=20))],
+)
 async def get_share(
     share_id: str = Query(..., description="ID расшариваемой папки"),
-    sharemark_uuid: str = Query(..., description="UUID владельца, хранящийся в локальном хранилище")
+    sharemark_uuid: str = Query(..., description="UUID владельца, хранящийся в локальном хранилище"),
 ):
-    payload = {
-        "sharemark_uuid": sharemark_uuid,
-        "share_id": share_id
-    }
+    payload = {"sharemark_uuid": sharemark_uuid, "share_id": share_id}
 
     # Отправляем в очередь
     await rabbit.publish(payload)
+    return {"status": "queued"}

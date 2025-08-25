@@ -261,65 +261,6 @@ async function updateRedirectRule() {
   console.log("Правило редиректа обновлено:", uuid);
 }
 
-// async function tryShareRequest(url, uuid, maxAttempts = 3) {
-//   let attempt = 0;
-//   let finalUrl;
-
-//   // Преобразуем URL, подставляем sharemark_uuid
-//   const urlObj = new URL(url);
-//   urlObj.pathname = "/api/share";
-//   urlObj.searchParams.set("sharemark_uuid", uuid);
-//   finalUrl = urlObj.toString();
-
-//   while (attempt < maxAttempts) {
-//     attempt++;
-//     console.log(`Попытка #${attempt}: ${finalUrl}`);
-
-//     try {
-//       const res = await fetch(finalUrl);
-//       const data = await res.json();
-
-//       if (res.ok && data.status === "ok") {
-//         console.log("✅ Успешно получили OK-ответ");
-//         return finalUrl; // возвращаем URL для редиректа
-//       }
-
-//       console.warn("Ответ сервера:", data);
-//     } catch (err) {
-//       console.error("Ошибка запроса:", err);
-//     }
-
-//     // Подождём перед следующей попыткой
-//     await new Promise(resolve => setTimeout(resolve, 1000));
-//   }
-
-//   console.error("❌ Не удалось получить успешный ответ за 3 попытки");
-//   return null;
-// }
-
-// // Ловим запросы на /get_sharemark_share
-// chrome.webRequest.onBeforeRequest.addListener(
-//   async (details) => {
-//     console.log("Перехвачен запрос:", details.url);
-
-//     const uuid = await getUuid();
-//     if (!uuid) {
-//       console.warn("Нет sharemark_uuid — редирект отменён");
-//       return;
-//     }
-
-//     const redirectUrl = await tryShareRequest(details.url, uuid);
-//     if (redirectUrl) {
-//       return { redirectUrl }; // редиректим, если успешный ответ
-//     } else {
-//       console.warn("Редирект отменён из-за неудачных попыток");
-//     }
-//   },
-//   { urls: ["http://localhost/get_sharemark_share*"], types: ["main_frame"] },
-//   ["blocking"]
-// );
-
-
 function resetWsTimeout() {
   if (wsTimeout) {
     clearTimeout(wsTimeout);
