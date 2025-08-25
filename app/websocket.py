@@ -117,12 +117,3 @@ async def start_redis_subscriber():
             except Exception as e:
                 print(f"Error processing Redis notification: {e}")
 
-
-async def periodic_ping(websocket):
-    try:
-        while True:
-            await asyncio.sleep(30)
-            await websocket.ping()
-    except Exception:
-        # Соединение потеряно
-        pass
