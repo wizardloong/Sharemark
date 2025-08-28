@@ -13,3 +13,4 @@ env/__pycache__/
 extension/node_modules/
 extension/package.json
 app/.pytest_cache/
+env/__pycache__/

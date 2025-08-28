@@ -80,7 +80,7 @@ class RabbitMQ:
         if not self.channel:
             await self.connect()
 
-        queue = await self.channel.declare_queue(QUEUE_NAME, durable=True)
+        queue = await self.channel.declare_queue(QUEUE_NAME, durable=True, arguments={"x-max-length": MAX_QUEUE_LENGTH})
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:

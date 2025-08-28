@@ -61,9 +61,11 @@ async def get_shared_folder(share_id: str) -> Optional[dict]:
         return {}
     
     dict_data = msgpack.unpackb(packed_data, raw=False)
+
+    return dict_data
     
     # Можно сразу вернуть как Pydantic модели:
-    return {k: SharedFolder.model_validate(v) for k, v in dict_data.items()}
+    # return {k: SharedFolder.model_validate(v) for k, v in dict_data.items()}
 
 async def delete_shared_folder(share_id: str):
     """

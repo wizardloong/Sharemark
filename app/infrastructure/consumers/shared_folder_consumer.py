@@ -49,16 +49,12 @@ async def process_message(message: IncomingMessage):
         print(f"Ошибка: {e}, переотправляем через delay_queue")
         
         try:
-            # Используем наш новый метод
-            await rabbit.publish_delayed(message.body)
+            # Используем существующий метод publish с задержкой
+            await rabbit.publish(message.body, delay=1000)  # 1 секунда, или динамически
             
-            # Контекстный менеджер подтвердит сообщение, поскольку мы успешно 
-            # переотправили его в очередь задержки
             print(f"Сообщение успешно добавлено в очередь задержки")
-            
         except Exception as publish_error:
             print(f"Ошибка при публикации в delay_queue: {publish_error}")
-            # Пробрасываем ошибку, чтобы контекстный менеджер отклонил сообщение
             raise
 
 
