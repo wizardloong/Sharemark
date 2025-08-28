@@ -110,7 +110,7 @@ async def start_redis_subscriber():
                 if sharemark_uuid in active_connections:
                     for websocket in active_connections[sharemark_uuid]:
                         try:
-                            await websocket.send_json(notification)
+                            await websocket["ws"].send_json(notification)
                         except Exception as e:
                             print(f"Error sending to websocket: {e}")
                             

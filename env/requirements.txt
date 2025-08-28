@@ -13,3 +13,6 @@ sentry-sdk
 prometheus_client
 fastapi-limiter
 msgpack
+jinja2
+python-multipart
+pydantic[email]
