@@ -3,10 +3,10 @@ from models.feedback import Feedback
 from datetime import datetime
 
 
-def saveFeedback(name: str, email: str, message: str, subscribe: bool) -> str:
+def saveFeedback(name: str, email: str, message: str, subscribe: bool) -> int:
     db = next(get_db())
 
-    date = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f%z')
+    date = datetime.now().isoformat()
 
     feedback = Feedback(
         name=name,

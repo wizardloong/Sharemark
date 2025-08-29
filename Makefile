@@ -28,7 +28,7 @@ logs:
 
 # Попасть в контейнер backend
 sh:
-	$(DOCKER_COMPOSE) exec backend sh
+	$(DOCKER_COMPOSE) exec backend bash
 
 # Проверка статуса
 ps:

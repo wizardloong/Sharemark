@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, constr, Field
 
 class ShareRequest(BaseModel):
     folder_id: str
@@ -22,3 +22,13 @@ class SharedFolder(BaseModel):
     bookmarks: List[Bookmark]
     can_write: bool
     owner_uuid: str
+
+class FeedbackRequest(BaseModel):
+    name: constr(strip_whitespace=True, min_length=1, max_length=100)
+    email: EmailStr
+    message: constr(strip_whitespace=True, min_length=1, max_length=2000)
+    subscribe: bool = False
+
+class VoteRequest(BaseModel):
+    feature_id: int = Field(..., description="Future Feature ID")
+    vote_count: int = Field(..., ge=1, le=3, description="Votes count (1–3)")

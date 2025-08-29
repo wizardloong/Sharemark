@@ -1,13 +1,11 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from contextlib import asynccontextmanager
-from dotenv import load_dotenv
-from pathlib import Path
 import os
 import asyncio
 import sentry_sdk
-from redis.asyncio import Redis
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+from pathlib import Path
 from fastapi_limiter import FastAPILimiter
 
 # Загружаем .env
@@ -46,6 +44,8 @@ async def lifespan(app: FastAPI):
     task.cancel()
 
 app = FastAPI(lifespan=lifespan)
+
+app.mount("/static", StaticFiles(directory="public/static"), name="static")
 
 # Подключаем маршруты
 app.include_router(api_router, prefix="/api")
