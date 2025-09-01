@@ -1,0 +1,58 @@
+<!-- Future Features Section -->
+<section class="py-16 bg-gray-100 dark:bg-gray-800 px-4" id="future">
+    <div class="container mx-auto">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold mb-4">Help Shape Sharemark's Future</h2>
+            <p class="max-w-2xl mx-auto text-gray-600 dark:text-gray-300">We're planning these premium features. Click the heart to vote for what you'd like to see first!</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {% for future in futures %}
+            <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 relative overflow-hidden">
+                <!-- Полупрозрачная фоновая картинка -->
+                
+                <div class="absolute inset-0 opacity-10 transform -rotate-30 scale-150 -translate-x-4 -translate-y-4 pointer-events-none">
+                    {% if future.icon_path %}
+                        <img src="{{ url_for('static', path=future.icon_path) }}" 
+                            alt="{{ future.name }} Icon" 
+                            class="w-full h-full object-contain">
+                    {% elif future.icon_url %}
+                        <img src="{{ future.icon_url }}" 
+                            alt="{{ future.name }} Icon" 
+                            class="w-full h-full object-contain">
+                    {% else %}
+                        <i class="fas fa-star text-yellow-500"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- Контент поверх фона -->
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-bold text-lg">{{ future.name }}</h3>
+                        <button data-track="{{ future.slug }}_like_click" class="like-btn text-gray-400 hover:text-red-500" data-feature="{{ future.id }}">
+                            <i class="far fa-heart"></i>
+                            <span class="ml-1 text-sm">0</span>
+                        </button>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">{{ future.description }}</p>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Planned for Q{{ future.deadline_quarter }} {{ future.deadline_year }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Общий ползунок цены -->
+        <div id="common-price-slider-container" class="mt-12 hidden">
+            <div class="flex justify-center">
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 max-w-2xl mx-auto">
+                    <h3 class="font-bold text-lg mb-4 text-center">How much would you like to pay for the premium version?</h3>
+                    <div class="flex items-center mb-2">
+                        <span class="text-sm mr-2">$0</span>
+                        <input type="range" min="0" max="100" value="0" class="w-full" id="common-price-slider">
+                        <span class="text-sm ml-2">$100</span>
+                    </div>
+                    <p class="text-center text-sm text-gray-600 dark:text-gray-300 mt-4">Selected: $<span id="common-price-value">0</span>/year</p>
+                </div>
+            </div>
+        </div>
+</section>

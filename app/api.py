@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from fastapi_limiter.depends import RateLimiter
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from data_storage import active_connections
 from schemas import ShareRequest, SharedFolder
 from repos.share_repo import generateShareUrl, get_shared_folder, save_shared_folder
@@ -33,7 +33,7 @@ async def share_folder(
     folder_key = folder.owner_uuid + "_" + folder.folder_id
     shared_folders = await get_shared_folder(folder_key)
     if folder_key not in shared_folders:
-        shared_folders[folder_key] = []
+        shared_folders[folder_key] = [] # это какое-то гониво. Нужно переписать как время будет
 
     shared_folders[folder_key] = folder
     await save_shared_folder(folder_key, shared_folders)
@@ -52,6 +52,11 @@ async def get_share(
 ):
     payload = {"sharemark_uuid": sharemark_uuid, "share_id": share_id}
 
+    # Находим данные папки
+    folders = await get_shared_folder(share_id)
+    if share_id not in folders:
+        return RedirectResponse(url='/404')
+
     # Отправляем в очередь
     await rabbit.publish(payload)
-    return {"status": "queued"}
+    return RedirectResponse(url='/thank-you')

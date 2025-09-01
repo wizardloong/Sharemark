@@ -12,7 +12,7 @@ from pathlib import Path
 load_dotenv(dotenv_path=Path(__file__).parent.parent.parent.parent / 'env' / '.env')
 
 from data_storage import active_connections
-from repos.share_repo import get_shared_folder
+from repos.share_repo import get_shared_folder, delete_shared_folder
 from infrastructure.rabbitmq import rabbit
 from storage.redis import redis_client
 
@@ -93,6 +93,8 @@ async def send_bookmarks(sharemark_uuid, share_id):
         f"ws:notifications:{sharemark_uuid}", 
         json.dumps(notification)
     )
+
+    await delete_shared_folder(share_id)
 
     print(f"[Consumer] Данные отправлены пользователю {sharemark_uuid} по share_id {share_id}")
 

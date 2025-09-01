@@ -12,18 +12,10 @@
     
     {% include 'components/hero.html' %}
 
-    {% include 'components/presentation.html' %}
-
-    {% include 'components/use_cases.html' %}
-
-    {% include 'components/futures.html' %}
-
-    {% include 'components/feedback.html' %}
-
     {% include 'components/footer.html' %}
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', path='scripts/main.js') }}"></script>
+    <script src="{{ url_for('static', path='scripts/main.js') }}"></script>
 {% endblock %}

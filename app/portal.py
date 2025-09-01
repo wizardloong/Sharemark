@@ -18,6 +18,14 @@ async def read_root(request: Request):
     futures = future_repo.getFutures()
     return templates.TemplateResponse("index.html", {"request": request, "futures": futures})
 
+@router.get("/thank-you", response_class=HTMLResponse)
+async def read_sharing_deadend(request: Request):
+    return templates.TemplateResponse("sharing_deadend.html", {"request": request})
+
+@router.get("/404", response_class=HTMLResponse)
+async def read_404(request: Request):
+    return templates.TemplateResponse("sharing_404.html", {"request": request})
+
 
 @router.post("/feedback", response_class=JSONResponse)
 async def submit_feedback(

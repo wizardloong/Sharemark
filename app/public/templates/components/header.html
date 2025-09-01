@@ -1,0 +1,23 @@
+<!-- Header with theme toggle -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-indigo-500 dark:bg-purple-600 flex items-center justify-center">
+                <i class="fas fa-share-alt text-white"></i>
+            </div>
+            <span class="text-xl font-bold">Sharemark</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="#features" class="hidden md:inline hover:text-primary-light dark:hover:text-primary-dark">Features</a>
+            <a href="#use-cases" class="hidden md:inline hover:text-primary-light dark:hover:text-primary-dark">Use Cases</a>
+            <a href="#future" class="hidden md:inline hover:text-primary-light dark:hover:text-primary-dark">Future</a>
+            <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                <input type="checkbox" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+            </div>
+            <button data-track="install_click" class="bg-primary-light dark:bg-primary-dark text-white px-4 py-2 rounded-full hover:opacity-90 transition">
+                Install Now
+            </button>
+        </div>
+    </div>
+</header>

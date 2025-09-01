@@ -28,7 +28,7 @@ logs:
 
 # Попасть в контейнер backend
 sh:
-	$(DOCKER_COMPOSE) exec backend bash
+	$(DOCKER_COMPOSE) exec backend bashs
 
 # Проверка статуса
 ps:
@@ -37,3 +37,23 @@ ps:
 # Очистка всего (контейнеров, образов, томов)
 prune:
 	docker system prune -a --volumes --force
+
+# ---- Миграции ----
+
+# Применить все миграции
+migrate:
+	$(DOCKER_COMPOSE) exec backend bash -c "cd ../$(ENV_DIR) && alembic upgrade head"
+
+# Создать новую миграцию (пример: make newmigrate name=init)
+newmigrate:
+	$(DOCKER_COMPOSE) exec backend bash -c "cd ../$(ENV_DIR) && alembic revision --autogenerate -m \"$(name)\""
+
+# Откатить одну миграцию назад
+backmigrate:
+	$(DOCKER_COMPOSE) exec backend bash -c "cd ../$(ENV_DIR) && alembic downgrade -1"
+
+# ---- Контейнеры ----
+
+# Перезагрузить один контейнер (пример: make reload name=backend)
+reload:
+	$(DOCKER_COMPOSE) restart $(name)
