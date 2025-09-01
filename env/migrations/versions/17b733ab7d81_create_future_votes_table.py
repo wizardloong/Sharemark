@@ -32,7 +32,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_future_votes_future_id'), 'future_votes', ['future_id'], unique=False)
     op.create_index(op.f('ix_future_votes_id'), 'future_votes', ['id'], unique=False)
-    op.create_index(op.f('ix_future_votes_uniq_user_hash'), 'future_votes', ['uniq_user_hash'], unique=True)
+    op.create_index(op.f('ix_future_votes_uniq_user_hash'), 'future_votes', ['uniq_user_hash'], unique=False)
     # ### end Alembic commands ###
 
 

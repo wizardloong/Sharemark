@@ -2,7 +2,16 @@ from storage.mysql import get_db
 from models.future import Future
 
 
-def saveFuture(name: str, slug: str, description: str, icon_url: str, icon_path:str, deadline_yead: int, deadline_quarter: int) -> int:
+def saveFuture(
+        name: str, 
+        slug: str, 
+        description: str, 
+        icon_url: str, 
+        icon_path:str, 
+        deadline_yead: int, 
+        deadline_quarter: int,
+        is_active: bool = True
+) -> int:
     db = next(get_db())
 
     model = Future(
@@ -13,6 +22,7 @@ def saveFuture(name: str, slug: str, description: str, icon_url: str, icon_path:
         icon_path=icon_path,
         deadline_year=deadline_yead,
         deadline_quarter=deadline_quarter,
+        is_active=is_active,
     )
     db.add(model)
     db.commit()
