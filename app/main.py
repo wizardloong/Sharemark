@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from pathlib import Path
 from fastapi_limiter import FastAPILimiter
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 # Загружаем .env
 load_dotenv(dotenv_path=Path(__file__).parent.parent / "env" / ".env")
@@ -44,6 +46,9 @@ async def lifespan(app: FastAPI):
     task.cancel()
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(GZipMiddleware)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=[os.getenv("DOMAIN_NAME"), "localhost"])
 
 app.mount("/static", StaticFiles(directory="public/static"), name="static")
 
