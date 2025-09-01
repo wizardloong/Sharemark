@@ -6,6 +6,7 @@
     <title>Sharemark - Share Bookmark Folders Easily</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="2167d37e-0ab9-424f-b4ba-c322abb9ce14"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -149,7 +150,7 @@
                     <input type="checkbox" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
                     <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                 </div>
-                <button class="bg-primary-light dark:bg-primary-dark text-white px-4 py-2 rounded-full hover:opacity-90 transition">
+                <button data-track="install_click" class="bg-primary-light dark:bg-primary-dark text-white px-4 py-2 rounded-full hover:opacity-90 transition">
                     Install Now
                 </button>
             </div>
@@ -163,10 +164,10 @@
                 <h1 class="text-4xl md:text-5xl font-bold mb-6">Share Your Bookmarks <span class="text-primary-light dark:text-primary-dark">Effortlessly</span></h1>
                 <p class="text-xl mb-8 text-gray-600 dark:text-gray-300">Sharemark lets you instantly share bookmark folders with friends, colleagues, or across your devices. No more broken links or manual copying.</p>
                 <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <button class="bg-primary-light dark:bg-primary-dark text-white px-6 py-3 rounded-full hover:opacity-90 transition flex items-center justify-center">
+                    <button data-track="chrome_click" class="bg-primary-light dark:bg-primary-dark text-white px-6 py-3 rounded-full hover:opacity-90 transition flex items-center justify-center">
                         <i class="fab fa-chrome mr-2"></i> Add to Chrome
                     </button>
-                    <button class="border border-primary-light dark:border-primary-dark text-primary-light dark:text-primary-dark px-6 py-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center justify-center">
+                    <button data-track="firefox_click" class="border border-primary-light dark:border-primary-dark text-primary-light dark:text-primary-dark px-6 py-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center justify-center">
                         <i class="fab fa-firefox mr-2"></i> Add to Firefox
                     </button>
                 </div>
@@ -348,7 +349,7 @@
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-3">
                             <h3 class="font-bold text-lg">{{ future.name }}</h3>
-                            <button class="like-btn text-gray-400 hover:text-red-500" data-feature="{{ future.id }}">
+                            <button data-track="{{ future.slug }}_like_click" class="like-btn text-gray-400 hover:text-red-500" data-feature="{{ future.id }}">
                                 <i class="far fa-heart"></i>
                                 <span class="ml-1 text-sm">0</span>
                             </button>
@@ -410,7 +411,7 @@
                                 <input name="subscribe" type="checkbox" id="subscribe" class="mr-2">
                                 <label for="subscribe" class="text-gray-700 dark:text-gray-300">Subscribe to newsletter</label>
                             </div>
-                            <button type="submit" class="w-full bg-primary-light dark:bg-primary-dark text-white py-2 px-4 rounded-lg hover:opacity-90 transition">Send Feedback</button>
+                            <button data-track="submit_feedback_click" type="submit" class="w-full bg-primary-light dark:bg-primary-dark text-white py-2 px-4 rounded-lg hover:opacity-90 transition">Send Feedback</button>
                         </form>
                     </div>
                 </div>
@@ -639,6 +640,92 @@
                 document.querySelector(this.getAttribute('href')).scrollIntoView({
                     behavior: 'smooth'
                 });
+            });
+        });
+
+        // Map для хранения времени начала просмотра секции
+        const sectionViewStartTimes = new Map();
+
+        // Функция для проверки, виден ли элемент
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+        // Функция для обработки видимости секций
+        function trackSectionView() {
+            document.querySelectorAll('section[id]').forEach(section => {
+                const sectionId = section.id;
+                const isInViewport = isElementInViewport(section);
+
+                if (isInViewport && !sectionViewStartTimes.has(sectionId)) {
+                    // Секция стала видимой -> записываем время начала
+                    sectionViewStartTimes.set(sectionId, Date.now());
+                    
+                    // Отправляем событие "section_view_start"
+                    umami.track('section_view_start', { 
+                        section_name: sectionId 
+                    });
+
+                } else if (!isInViewport && sectionViewStartTimes.has(sectionId)) {
+                    // Секция перестала быть видимой -> вычисляем длительность и отправляем
+                    const startTime = sectionViewStartTimes.get(sectionId);
+                    const duration = Date.now() - startTime;
+                    sectionViewStartTimes.delete(sectionId);
+
+                    // Отправляем событие "section_view_end" с длительностью
+                    umami.track('section_view_end', { 
+                        section_name: sectionId,
+                        duration_ms: duration 
+                    });
+                }
+            });
+        }
+
+        // Запускаем проверку при скролле и загрузке страницы
+        let scrollCheckTimer;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollCheckTimer);
+            scrollCheckTimer = setTimeout(trackSectionView, 100); // Дебаунсинг
+        });
+        window.addEventListener('load', trackSectionView);
+        // Также можно использовать Intersection Observer для большей эффективности
+
+        // Отслеживание кликов по кнопкам
+        document.body.addEventListener('click', function(event) {
+            // Находим ближайший элемент с data-track атрибутом
+            const trackedElement = event.target.closest('[data-track]');
+            
+            if (trackedElement) {
+                const eventName = trackedElement.getAttribute('data-track');
+                let eventData = {};
+
+                // Собираем все data-атрибуты элемента в объект eventData
+                for (let attr of trackedElement.attributes) {
+                    if (attr.name.startsWith('data-') && attr.name !== 'data-track') {
+                        const key = attr.name.replace('data-', '');
+                        eventData[key] = attr.value;
+                    }
+                }
+
+                // Отправляем событие в Umami
+                umami.track(eventName, eventData);
+                console.log('Tracked event:', eventName, eventData); // Для отладки
+            }
+        });
+
+        // Отслеживание JavaScript ошибок
+        window.addEventListener('error', function(e) {
+            umami.track('js_error', {
+                error_message: e.error?.message || e.message,
+                error_file: e.filename,
+                error_line: e.lineno,
+                error_col: e.colno
             });
         });
     </script>
