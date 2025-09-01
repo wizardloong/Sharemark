@@ -5,6 +5,7 @@ class Feedback(Base):
     __tablename__ = "feedbacks"
 
     id = Column(Integer, primary_key=True, index=True)
+    uniq_user_hash = Column(String(256), index=True, nullable=False)
     name = Column(String(256), nullable=False)
     email = Column(String(256), nullable=False)
     message = Column(Text, nullable=False)

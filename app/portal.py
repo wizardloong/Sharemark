@@ -21,6 +21,7 @@ async def read_root(request: Request):
 
 @router.post("/feedback", response_class=JSONResponse)
 async def submit_feedback(
+    request: Request,
     name: str = Form(...),
     email: EmailStr = Form(...),
     message: str = Form(...),
@@ -37,12 +38,17 @@ async def submit_feedback(
     # Защита от XSS (если где-то потом рендеришь в HTML)
     safe_message = html.escape(feedback.message)
 
+    ip = request.client.host
+    userAgent = request.headers.get("User-Agent", "unknown")
+
     # Сохранение в БД через ORM или параметризованный SQL
     feedback_repo.saveFeedback(
         name=feedback.name,
         email=feedback.email,
         message=safe_message,
-        subscribe=feedback.subscribe
+        subscribe=feedback.subscribe,
+        ip=ip,
+        userAgent=userAgent
     )
 
     return {"success": True, "message": "Feedback received", "name": feedback.name}
