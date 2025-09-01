@@ -123,7 +123,7 @@ def upgrade() -> None:
             icon_path=future["path"],
             deadline_yead=future["deadline_year"],
             deadline_quarter=future["deadline_quarter"],
-            active=future.get("active", True),
+            is_active=future.get("active", True),
         )
 
     pass
