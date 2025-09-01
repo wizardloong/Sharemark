@@ -358,20 +358,22 @@
                     </div>
                 </div>
                 {% endfor %}
-                
+            </div>
+
             <!-- Общий ползунок цены -->
             <div id="common-price-slider-container" class="mt-12 hidden">
-                <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 max-w-2xl mx-auto">
-                    <h3 class="font-bold text-lg mb-4 text-center">How much would you like to pay for the premium version?</h3>
-                    <div class="flex items-center mb-2">
-                        <span class="text-sm mr-2">$0</span>
-                        <input type="range" min="0" max="100" value="0" class="w-full" id="common-price-slider">
-                        <span class="text-sm ml-2">$100</span>
+                <div class="flex justify-center">
+                    <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 max-w-2xl mx-auto">
+                        <h3 class="font-bold text-lg mb-4 text-center">How much would you like to pay for the premium version?</h3>
+                        <div class="flex items-center mb-2">
+                            <span class="text-sm mr-2">$0</span>
+                            <input type="range" min="0" max="100" value="0" class="w-full" id="common-price-slider">
+                            <span class="text-sm ml-2">$100</span>
+                        </div>
+                        <p class="text-center text-sm text-gray-600 dark:text-gray-300 mt-4">Selected: $<span id="common-price-value">0</span>/year</p>
                     </div>
-                    <p class="text-center text-sm text-gray-600 dark:text-gray-300 mt-4">Selected: $<span id="common-price-value">0</span>/year</p>
                 </div>
             </div>
-        </div>
     </section>
 
     <!-- Feedback Section -->
