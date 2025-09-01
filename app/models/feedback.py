@@ -5,7 +5,7 @@ class Feedback(Base):
     __tablename__ = "feedbacks"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(256), unique=True, index=True, nullable=False)
+    name = Column(String(256), nullable=False)
     email = Column(String(256), nullable=False)
     message = Column(Text, nullable=False)
     subscribe = Column(String(3), nullable=False)  # 'yes' or 'no'

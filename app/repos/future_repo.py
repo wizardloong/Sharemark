@@ -22,4 +22,4 @@ def saveFuture(name: str, slug: str, description: str, icon_url: str, icon_path:
 
 def getFutures() -> list[Future]:
     db = next(get_db())
-    return db.query(Future).all()
+    return db.query(Future).filter(Future.is_active == True).all()

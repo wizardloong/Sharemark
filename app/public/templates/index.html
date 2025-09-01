@@ -505,16 +505,38 @@
             commonPriceValue.textContent = this.value;
         });
         
-        commonPriceSlider.addEventListener('change', function() {
+        commonPriceSlider.addEventListener('change', async function() {
             const price = this.value;
             
             // Prepare AJAX request for price selection
             const priceData = {
                 price: price,
-                action: 'price-selection'
             };
             console.log('Prepared price AJAX:', priceData);
             // Here you would normally do: fetch('/api/feature-price', { method: 'POST', body: JSON.stringify(priceData) })
+
+            try {
+                const response = await fetch('/set_price', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(priceData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert("Что-то пошло не так. Попробуйте ещё раз.");
+                }
+            } catch (error) {
+                console.error("Ошибка отправки:", error);
+                alert("Не удалось отправить форму. Попробуйте позже.");
+            }
         });
         
         // Like button functionality

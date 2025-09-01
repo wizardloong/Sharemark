@@ -15,7 +15,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '../.env'))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../app')))
 
 from models.base import Base  # базовый класс моделей
-from models import share, feedback, future, future_vote   # импортируем модели, чтобы Alembic их видел
+from models import share, feedback, future, future_vote, user_price   # импортируем модели, чтобы Alembic их видел
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

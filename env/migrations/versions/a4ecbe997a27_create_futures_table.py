@@ -33,8 +33,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_futures_id'), 'futures', ['id'], unique=False)
-    op.create_index(op.f('ix_futures_slug'), 'futures', ['slug'], unique=False)
-    op.create_index(op.f('ix_feedbacks_name'), 'feedbacks', ['name'], unique=True)
+    op.create_index(op.f('ix_futures_slug'), 'futures', ['slug'], unique=True)
+
+    op.add_column('futures', sa.Column('is_active', sa.Boolean(), nullable=False))
     # ### end Alembic commands ###
 
 

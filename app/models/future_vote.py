@@ -6,7 +6,7 @@ class FutureVote(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     future_id = Column(Integer, index=True, nullable=False)
-    uniq_user_hash = Column(String(256), index=True, nullable=False)
+    uniq_user_hash = Column(String(256), index=True, nullable=False, unique=True)
     vote = Column(Integer, nullable=False)
     created_at = Column(String(36), nullable=False)  # ISO 8601 format
     updated_at = Column(String(36), nullable=False)  # ISO 8601 format

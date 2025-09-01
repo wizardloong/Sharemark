@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from repos import feedback_repo, future_repo
+from repos import feedback_repo, future_repo, user_price_repo
 from pydantic import EmailStr
 import html
-from schemas import FeedbackRequest, VoteRequest
+from schemas import FeedbackRequest, VoteRequest, PriceRequest
 from storage.mysql import get_db
 from sqlalchemy.orm import Session
 from repos import future_vote_repo
@@ -68,3 +68,22 @@ async def set_vote(
     )
 
     return {"success": True, "vote_id": new_vote_id, "total_votes": data.vote_count}
+
+
+@router.post("/set_price", response_class=JSONResponse)
+async def set_vote(
+    data: PriceRequest,
+    request: Request
+):
+    ip = request.client.host
+    userAgent = request.headers.get("User-Agent", "unknown")
+
+    user_price_repo.savePrice(
+        db=next(get_db()),
+        ip=ip,
+        userAgent=userAgent,
+        price=data.price
+    )
+
+    return {"success": True}
+

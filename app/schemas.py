@@ -31,4 +31,7 @@ class FeedbackRequest(BaseModel):
 
 class VoteRequest(BaseModel):
     feature_id: int = Field(..., description="Future Feature ID")
-    vote_count: int = Field(..., ge=1, le=3, description="Votes count (1–3)")
+    vote_count: int = Field(..., ge=0, le=3, description="Votes count (0–3)")
+
+class PriceRequest(BaseModel):
+    price: int = Field(..., ge=0, le=101, description="Price in dollars")
