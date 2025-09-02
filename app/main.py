@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi_limiter import FastAPILimiter
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
+from fastapi_proxiedheadersmiddleware import ProxiedHeadersMiddleware
 
 # Загружаем .env
 load_dotenv(dotenv_path=Path(__file__).parent.parent / "env" / ".env")
@@ -50,7 +50,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(GZipMiddleware)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=[os.getenv("DOMAIN_NAME"), "localhost"])
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")  # 👈 важно!
+app.add_middleware(ProxiedHeadersMiddleware)
 
 app.mount("/static", StaticFiles(directory="public/static"), name="static")
 
