@@ -16,4 +16,4 @@ msgpack
 jinja2
 python-multipart
 pydantic[email]
-fastapi-proxiedheadersmiddleware
+

@@ -9,7 +9,15 @@ from pathlib import Path
 from fastapi_limiter import FastAPILimiter
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi_proxiedheadersmiddleware import ProxiedHeadersMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class CustomProxyHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        proto = request.headers.get("x-forwarded-proto")
+        if proto:
+            request.scope["scheme"] = proto
+        return await call_next(request)
+
 
 # Загружаем .env
 load_dotenv(dotenv_path=Path(__file__).parent.parent / "env" / ".env")
@@ -50,7 +58,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(GZipMiddleware)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=[os.getenv("DOMAIN_NAME"), "localhost"])
-app.add_middleware(ProxiedHeadersMiddleware)
+app.add_middleware(CustomProxyHeadersMiddleware)
 
 app.mount("/static", StaticFiles(directory="public/static"), name="static")
 
