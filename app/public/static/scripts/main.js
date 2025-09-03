@@ -1,27 +1,3 @@
-// Theme toggle functionality
-const toggle = document.getElementById('toggle');
-const html = document.documentElement;
-
-// Check for saved user preference, if any, on load of the website
-if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    html.classList.add('dark');
-    toggle.checked = true;
-} else {
-    html.classList.remove('dark');
-    toggle.checked = false;
-}
-
-// Listen for toggle changes
-toggle.addEventListener('change', function() {
-    if (this.checked) {
-        html.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        html.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-    }
-});
-
 // Общий ползунок цены
 const commonPriceSlider = document.getElementById('common-price-slider');
 const commonPriceValue = document.getElementById('common-price-value');

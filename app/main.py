@@ -9,24 +9,18 @@ from pathlib import Path
 from fastapi_limiter import FastAPILimiter
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-
-class CustomProxyHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        proto = request.headers.get("x-forwarded-proto")
-        if proto:
-            request.scope["scheme"] = proto
-        return await call_next(request)
 
 
 # Загружаем .env
 load_dotenv(dotenv_path=Path(__file__).parent.parent / "env" / ".env")
+
 
 from api import router as api_router
 from websocket import router as ws_router, start_redis_subscriber
 from portal import router as portal_router
 from storage.redis import get_redis
 from infrastructure.rabbitmq import rabbit
+from infrastructure.middlewares.cutom_proxy_middleware import CustomProxyHeadersMiddleware
 
 
 sentry_sdk.init(
