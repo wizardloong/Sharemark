@@ -6,8 +6,8 @@ from pydantic import EmailStr
 import html
 from schemas import FeedbackRequest, VoteRequest, PriceRequest
 from storage.mysql import get_db
-from sqlalchemy.orm import Session
 from repos import future_vote_repo
+from infrastructure.helpers.client_ip import get_client_ip
 
 router = APIRouter()
 
@@ -46,7 +46,7 @@ async def submit_feedback(
     # Защита от XSS (если где-то потом рендеришь в HTML)
     safe_message = html.escape(feedback.message)
 
-    ip = request.client.host
+    ip = get_client_ip(request)
     userAgent = request.headers.get("User-Agent", "unknown")
 
     # Сохранение в БД через ORM или параметризованный SQL
@@ -70,7 +70,7 @@ async def set_vote(
     if data.vote_count < 0 or data.vote_count > 3:
         raise HTTPException(status_code=400, detail="Vote must be between 0 and 3")
     
-    ip = request.client.host
+    ip = get_client_ip(request)
     userAgent = request.headers.get("User-Agent", "unknown")
 
     new_vote_id = future_vote_repo.saveFutureVote(
@@ -89,7 +89,7 @@ async def set_vote(
     data: PriceRequest,
     request: Request
 ):
-    ip = request.client.host
+    ip = get_client_ip(request)
     userAgent = request.headers.get("User-Agent", "unknown")
 
     user_price_repo.savePrice(
