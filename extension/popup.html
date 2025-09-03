@@ -1,13 +1,102 @@
-<!-- popup.html -->
-<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    .folder-item { display: flex; align-items: center; margin: 8px 0; }
-    .toggle { cursor: pointer; margin-right: 12px; }
-    .toggle.disabled { opacity: 0.5; cursor: not-allowed; }
-    .planet-btn { margin-left: auto; background: none; border: none; cursor: pointer; }
+    body {
+      background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #0a192f 100%);
+      padding: 15px;
+      margin: 0;
+      min-width: 250px;
+      border: 1px solid rgba(100, 255, 255, 0.3);
+      border-radius: 12px;
+      box-shadow: 
+        0 0 15px rgba(66, 220, 255, 0.4),
+        inset 0 0 20px rgba(0, 60, 120, 0.6);
+      animation: pulse 4s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      background: linear-gradient(45deg, 
+        rgba(66, 220, 255, 0.1) 0%, 
+        rgba(0, 119, 255, 0.2) 50%, 
+        rgba(66, 220, 255, 0.1) 100%);
+      z-index: -1;
+      border-radius: 15px;
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(66, 220, 255, 0.4), inset 0 0 20px rgba(0, 60, 120, 0.6); }
+      50% { box-shadow: 0 0 25px rgba(66, 220, 255, 0.7), inset 0 0 30px rgba(0, 80, 160, 0.8); }
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .folder-item {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
+      padding: 10px 15px;
+      background: rgba(23, 42, 69, 0.7);
+      border-radius: 8px;
+      border: 1px solid rgba(100, 200, 255, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      color: #e6f1ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .folder-item:hover {
+      background: rgba(36, 61, 90, 0.8);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .toggle {
+      cursor: pointer;
+      margin-right: 12px;
+      color: #64ffda;
+    }
+
+    .toggle.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .planet-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #64ffda;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      padding: 5px;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .planet-btn:hover {
+      background: rgba(100, 255, 218, 0.1);
+      transform: scale(1.1);
+      color: #88ffdf;
+    }
   </style>
 </head>
 <body>

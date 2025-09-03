@@ -15,3 +15,4 @@ extension/package.json
 app/.pytest_cache/
 env/__pycache__/
 app/infrastructure/helpers/__pycache__/
+app/infrastructure/middlewares/__pycache__/

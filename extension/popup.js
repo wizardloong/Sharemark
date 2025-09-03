@@ -47,7 +47,7 @@ async function renderFolders(folders) {
     title.textContent = folder.title;
 
     const planetBtn = document.createElement('button');
-    planetBtn.innerHTML = '🌐';
+    planetBtn.innerHTML = '<i class="fas fa-globe"></i>';
     planetBtn.className = 'planet-btn';
     planetBtn.addEventListener('click', () => handleShare(folder, initialState === 2));
 
