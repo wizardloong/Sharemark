@@ -3,6 +3,7 @@ from models.future import Future
 
 
 def saveFuture(
+        db,
         name: str, 
         slug: str, 
         description: str, 
@@ -12,8 +13,6 @@ def saveFuture(
         deadline_quarter: int,
         is_active: bool = True
 ) -> int:
-    db = next(get_db())
-
     model = Future(
         name=name,
         slug=slug,
@@ -30,6 +29,23 @@ def saveFuture(
 
     return model.id
 
-def getFutures() -> list[Future]:
-    db = next(get_db())
+def getFutures(db) -> list[Future]:
     return db.query(Future).filter(Future.is_active == True).all()
+
+def updateBySlug(
+        db,
+        slug: str,
+        data: dict,
+) -> int:
+    model = db.query(Future).filter(Future.slug == slug).one_or_none()
+    if not model:
+        return None
+    
+    for key, value in data.items():
+        setattr(model, key, value)
+
+
+    db.commit()
+    db.refresh(model)
+
+    return model.id

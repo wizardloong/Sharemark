@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 from repos import feedback_repo, future_repo, user_price_repo
 from pydantic import EmailStr
 import html
@@ -14,8 +15,11 @@ router = APIRouter()
 templates = Jinja2Templates(directory="public/templates")
 
 @router.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    futures = future_repo.getFutures()
+async def read_root(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    futures = future_repo.getFutures(db)
     return templates.TemplateResponse("index.html", {"request": request, "futures": futures})
 
 @router.get("/thank-you", response_class=HTMLResponse)
@@ -33,7 +37,8 @@ async def submit_feedback(
     name: str = Form(...),
     email: EmailStr = Form(...),
     message: str = Form(...),
-    subscribe: bool = Form(False)
+    subscribe: bool = Form(False),
+    db: Session = Depends(get_db)
 ):
     # Валидация через модель
     feedback = FeedbackRequest(
@@ -51,6 +56,7 @@ async def submit_feedback(
 
     # Сохранение в БД через ORM или параметризованный SQL
     feedback_repo.saveFeedback(
+        db,
         name=feedback.name,
         email=feedback.email,
         message=safe_message,
@@ -65,7 +71,8 @@ async def submit_feedback(
 @router.post("/set_vote", response_class=JSONResponse)
 async def set_vote(
     data: VoteRequest,
-    request: Request
+    request: Request,
+    db: Session = Depends(get_db)
 ):
     if data.vote_count < 0 or data.vote_count > 3:
         raise HTTPException(status_code=400, detail="Vote must be between 0 and 3")
@@ -74,7 +81,7 @@ async def set_vote(
     userAgent = request.headers.get("User-Agent", "unknown")
 
     new_vote_id = future_vote_repo.saveFutureVote(
-        db=next(get_db()),
+        db,
         future_id=data.feature_id,
         ip=ip,
         userAgent=userAgent,
@@ -87,13 +94,14 @@ async def set_vote(
 @router.post("/set_price", response_class=JSONResponse)
 async def set_vote(
     data: PriceRequest,
-    request: Request
+    request: Request,
+    db: Session = Depends(get_db)
 ):
     ip = get_client_ip(request)
     userAgent = request.headers.get("User-Agent", "unknown")
 
     user_price_repo.savePrice(
-        db=next(get_db()),
+        db,
         ip=ip,
         userAgent=userAgent,
         price=data.price

@@ -28,7 +28,11 @@ logs:
 
 # Попасть в контейнер backend
 sh:
-	$(DOCKER_COMPOSE) exec backend bashs
+	$(DOCKER_COMPOSE) exec backend bash
+
+# Попасть в контейнер mysql
+dbsh:
+	$(DOCKER_COMPOSE) exec mysql bash
 
 # Проверка статуса
 ps:

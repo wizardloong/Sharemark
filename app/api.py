@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
+from sqlalchemy.orm import Session
 from fastapi_limiter.depends import RateLimiter
 from fastapi.responses import JSONResponse, RedirectResponse
 from data_storage import active_connections
 from schemas import ShareRequest, SharedFolder
 from repos.share_repo import generateShareUrl, get_shared_folder, save_shared_folder
 from infrastructure.rabbitmq import rabbit
+from storage.mysql import get_db
 
 router = APIRouter()
 
@@ -17,7 +19,8 @@ async def get_sharemark_uuid(request: Request) -> str:
 async def share_folder(
     data: ShareRequest, 
     request: Request,
-    _=Depends(RateLimiter(times=5, seconds=60, identifier=get_sharemark_uuid))
+    _=Depends(RateLimiter(times=5, seconds=60, identifier=get_sharemark_uuid)),
+    db: Session = Depends(get_db)
 ):
     if not data.bookmarks:
         raise HTTPException(400, "Bookmarks cannot be empty")
@@ -38,7 +41,7 @@ async def share_folder(
     shared_folders[folder_key] = folder
     await save_shared_folder(folder_key, shared_folders)
 
-    share_url = generateShareUrl(folder_key, data.sharemark_uuid)
+    share_url = generateShareUrl(db, folder_key, data.sharemark_uuid)
 
     return {"share_id": folder_key, "share_url": share_url}
 

@@ -1,8 +1,6 @@
 import json
 import uuid as uuid_lib
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
-from storage.mysql import get_db
 from models.share import Share
 from schemas import SharedFolder
 
@@ -14,8 +12,7 @@ from schemas import SharedFolder
 
 BASE_URL = "getsharemark.com/get_sharemark_share?share_id="
 
-def generateShareUrl(share_id: str, master_uuid: str) -> str:
-    db = next(get_db())
+def generateShareUrl(db, share_id: str, master_uuid: str) -> str:
     try:
         share = db.query(Share).filter_by(share_id=share_id).one()
     except NoResultFound:
@@ -29,6 +26,7 @@ def generateShareUrl(share_id: str, master_uuid: str) -> str:
         db.commit()
         db.refresh(share)
     return share.share_url
+
 
 def redis_key(share_id: str) -> str:
     return f"shared_folder:{share_id}"

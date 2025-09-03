@@ -6,11 +6,14 @@ Create Date: 2025-08-29 10:50:17.420447
 
 """
 from typing import Sequence, Union
+from fastapi import Depends
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.orm import Session
 
 from repos.future_repo import saveFuture
+from storage.mysql import get_db
 
 
 # revision identifiers, used by Alembic.
@@ -20,7 +23,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade() -> None:
+def upgrade(db: Session = Depends(get_db)) -> None:
     futures = [
         {
             "name": "Smart Tags",

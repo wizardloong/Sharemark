@@ -4,9 +4,7 @@ from datetime import datetime
 from infrastructure.helpers.uniq_user_hash_helper import get_user_hash
 
 
-def saveFeedback(ip: str, userAgent: str, name: str, email: str, message: str, subscribe: bool) -> int:
-    db = next(get_db())
-
+def saveFeedback(db, ip: str, userAgent: str, name: str, email: str, message: str, subscribe: bool) -> int:
     date = datetime.now().isoformat()
     uniq_user_hash = get_user_hash(ip, userAgent)
 

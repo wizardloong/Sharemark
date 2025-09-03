@@ -1,6 +1,20 @@
 from sqlalchemy import Column, Integer, String, Text, CheckConstraint, Boolean
 from models.base import Base
 
+class FutureSlugs:
+    SMART_TAGS = "smart-tags"
+    ENCRYPTION = "end-to-end-encryption"
+    SEARCH = "full-text-search"
+    SYNC = "continuous-sync"
+    PERMISSIONS = "granular-permissions"
+    VERSIONING = "version-history"
+    HEALTHCHECK = "bookmark-health-check"
+    EXPORT = "import-export-autobackup"
+    MOBILE = "mobile-app"
+    OFFLINE = "offline-access"
+    SELFHOSTED = "selfhosted-version"
+
+
 class Future(Base):
     __tablename__ = "futures"
 
