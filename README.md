@@ -2,7 +2,6 @@
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![Made with Python](https://img.shields.io/badge/Python-3.11-blue.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
 [![Chrome Web Store](https://img.shields.io/badge/Chrome_Extension-coming_soon-orange.svg)]()
 
 🔮 **Sharemark** — это расширение для браузера, которое позволяет делиться папками с закладками через одноразовые ссылки.  
