@@ -28,7 +28,8 @@
 
 ### Локальная установка (для разработчиков)
 1. Склонируйте репозиторий  
-   ```bash
+
+```bash
    git clone https://github.com/username/sharemark.git
    cd sharemark/extension
 ````
