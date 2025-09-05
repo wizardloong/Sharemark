@@ -1,4 +1,5 @@
 import json
+import os
 import uuid as uuid_lib
 from sqlalchemy.exc import NoResultFound
 from models.share import Share
@@ -10,13 +11,14 @@ from pydantic import TypeAdapter
 from storage.redis import get_redis
 from schemas import SharedFolder
 
-BASE_URL = "getsharemark.com/get_sharemark_share?share_id="
+BASE_URL = "/get_sharemark_share?share_id="
 
 def generateShareUrl(db, share_id: str, master_uuid: str) -> str:
     try:
         share = db.query(Share).filter_by(share_id=share_id).one()
     except NoResultFound:
-        share_url = f"{BASE_URL}{share_id}"
+        domain = os.getenv("DOMAIN")
+        share_url = f"{domain}{BASE_URL}{share_id}"
         share = Share(
             share_id=share_id,
             master_uuid=master_uuid,
