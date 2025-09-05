@@ -17,7 +17,7 @@ def generateShareUrl(db, share_id: str, master_uuid: str) -> str:
     try:
         share = db.query(Share).filter_by(share_id=share_id).one()
     except NoResultFound:
-        domain = os.getenv("DOMAIN")
+        domain = os.getenv("DOMAIN_NAME")
         share_url = f"{domain}{BASE_URL}{share_id}"
         share = Share(
             share_id=share_id,
