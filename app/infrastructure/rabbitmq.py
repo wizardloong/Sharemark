@@ -46,7 +46,10 @@ class RabbitMQ:
             }
         )
 
-    async def publish(self, message, delay: int = 0):
+    async def publish(self, message, headers=None, delay: int = 0):
+        if headers is None:
+            headers = {}
+
         if not self.channel:
             await self.connect()
 
@@ -59,6 +62,7 @@ class RabbitMQ:
             message = message.encode()
 
         target_queue = DELAY_QUEUE_NAME if delay else QUEUE_NAME
+        
         # Если задан delay > 0, временно используем delay очередь и TTL
         if delay:
             await self.channel.declare_queue(
@@ -71,8 +75,14 @@ class RabbitMQ:
                 }
             )
 
+        # Создаем сообщение с заголовками
+        message_obj = Message(
+            body=message,
+            headers=headers or {}  # Используем переданные заголовки или пустой dict
+        )
+
         await self.channel.default_exchange.publish(
-            Message(body=message),
+            message_obj,
             routing_key=target_queue
         )
 

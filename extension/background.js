@@ -32,7 +32,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 
 // ------------------ WebSocket ------------------
 async function getWsConnection() {
-  return await initWebSocketConnection();
+  // return await initWebSocketConnection();
 }
 
 async function initWebSocketConnection() {

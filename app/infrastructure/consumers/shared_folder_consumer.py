@@ -55,8 +55,8 @@ async def process_message(message: IncomingMessage):
                 headers = {"x-retry-count": retry_count}
                 await rabbit.publish(
                     message.body, 
-                    delay=1000,
-                    headers=headers
+                    headers=headers,
+                    delay=1000
                 )
                 print(f"Сообщение успешно добавлено в очередь задержки (попытка {retry_count}/{MAX_RETRY_ATTEMPTS})")
             except Exception as publish_error:
