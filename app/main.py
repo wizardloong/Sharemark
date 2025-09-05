@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(GZipMiddleware)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=[os.getenv("HOST"), "localhost"])
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=[os.getenv("DOMAIN_NAME"), "localhost"])
 app.add_middleware(CustomProxyHeadersMiddleware)
 
 app.mount("/static", StaticFiles(directory="public/static"), name="static")
