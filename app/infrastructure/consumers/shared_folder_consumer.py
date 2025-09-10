@@ -16,13 +16,10 @@ from repos.share_repo import get_shared_folder, delete_shared_folder
 from infrastructure.rabbitmq import rabbit
 from storage.redis import redis_client
 
-RABBIT_URL = "amqp://guest:guest@rabbitmq:5672/"
-
-QUEUE_NAME = "shared_folders_queue"
 MAX_RETRY_ATTEMPTS = 5
 
 async def process_message(message: IncomingMessage):
-    try:
+    # try:
         payload = json.loads(message.body)
         sharemark_uuid = payload.get("sharemark_uuid")
         share_id = payload.get("share_id")
@@ -43,28 +40,28 @@ async def process_message(message: IncomingMessage):
             json.dumps(notification)
         )
         
-    except Exception as e:
-        print(f"Ошибка: {e}, переотправляем через delay_queue")
+    # except Exception as e:
+    #     print(f"Ошибка: {e}, переотправляем через delay_queue")
         
-        # Увеличиваем счетчик попыток
-        retry_count = int(retry_count) + 1
+    #     # Увеличиваем счетчик попыток
+    #     retry_count = int(retry_count) + 1
         
-        if retry_count <= MAX_RETRY_ATTEMPTS:
-            try:
-                # Используем заголовки для хранения счетчика
-                headers = {"x-retry-count": retry_count}
-                await rabbit.publish(
-                    message.body, 
-                    headers=headers,
-                    delay=1000
-                )
-                print(f"Сообщение успешно добавлено в очередь задержки (попытка {retry_count}/{MAX_RETRY_ATTEMPTS})")
-            except Exception as publish_error:
-                print(f"Ошибка при публикации в delay_queue: {publish_error}")
-                raise
-        else:
-            print(f"Достигнут лимит попыток ({MAX_RETRY_ATTEMPTS}). Сообщение удаляется.")
-            await message.ack()
+    #     if retry_count <= MAX_RETRY_ATTEMPTS:
+    #         try:
+    #             # Используем заголовки для хранения счетчика
+    #             headers = {"x-retry-count": retry_count}
+    #             await rabbit.publish(
+    #                 message.body, 
+    #                 headers=headers,
+    #                 delay=1000
+    #             )
+    #             print(f"Сообщение успешно добавлено в очередь задержки (попытка {retry_count}/{MAX_RETRY_ATTEMPTS})")
+    #         except Exception as publish_error:
+    #             print(f"Ошибка при публикации в delay_queue: {publish_error}")
+    #             raise
+    #     else:
+    #         print(f"Достигнут лимит попыток ({MAX_RETRY_ATTEMPTS}). Сообщение удаляется.")
+    #         await message.ack()
 
 
 async def send_bookmarks(sharemark_uuid, share_id):

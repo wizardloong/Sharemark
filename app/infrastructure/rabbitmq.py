@@ -10,13 +10,16 @@ RABBIT_PASSWORD = os.getenv("RABBIT_PASSWORD", "guest")
 
 QUEUE_NAME = "shared_folders_queue"
 DELAY_QUEUE_NAME = "shared_folders_delay_queue"
-MAX_QUEUE_LENGTH = 1000  # пример ограничения очереди (high-watermark логика)
-
+MAX_QUEUE_LENGTH = 1000
+DEFAULT_DELAY = 3000
+MAX_RETRIES = 3  # Максимальное количество попыток
 
 class RabbitMQ:
     def __init__(self):
         self.connection = None
         self.channel = None
+        self.main_queue = None
+        self.delay_queue = None
 
     async def connect(self):
         self.connection = await connect_robust(
@@ -28,21 +31,26 @@ class RabbitMQ:
         self.channel = await self.connection.channel()
         await self.channel.set_qos(prefetch_count=10)
 
-        # Основная очередь с ограничением длины (high-watermark логика)
-        await self.channel.declare_queue(
-            QUEUE_NAME,
-            durable=True,
-            arguments={"x-max-length": MAX_QUEUE_LENGTH}
-        )
-
-        # Очередь задержки для retry
-        await self.channel.declare_queue(
+        # Объявляем очередь задержки сначала
+        self.delay_queue = await self.channel.declare_queue(
             DELAY_QUEUE_NAME,
             durable=True,
             arguments={
-                "x-message-ttl": 1000,  # первая задержка 1 секунда
-                "x-dead-letter-exchange": "",  # после TTL вернется в основную очередь
-                "x-dead-letter-routing-key": QUEUE_NAME
+                "x-message-ttl": DEFAULT_DELAY,
+                "x-dead-letter-exchange": "",
+                "x-dead-letter-routing-key": QUEUE_NAME,
+                "x-max-length": MAX_QUEUE_LENGTH
+            }
+        )
+
+        # Затем объявляем основную очередь
+        self.main_queue = await self.channel.declare_queue(
+            QUEUE_NAME,
+            durable=True,
+            arguments={
+                "x-max-length": MAX_QUEUE_LENGTH,
+                "x-dead-letter-exchange": "",
+                "x-dead-letter-routing-key": DELAY_QUEUE_NAME
             }
         )
 
@@ -55,65 +63,57 @@ class RabbitMQ:
 
         if isinstance(message, dict):
             message = json.dumps(message)
-        elif not isinstance(message, str) and not isinstance(message, bytes):
+        elif not isinstance(message, (str, bytes)):
             raise TypeError(f"Message must be str, dict or bytes, got {type(message).__name__}")
 
         if isinstance(message, str):
             message = message.encode()
 
-        target_queue = DELAY_QUEUE_NAME if delay else QUEUE_NAME
-        
-        # Если задан delay > 0, временно используем delay очередь и TTL
+        # Копируем заголовки и добавляем счетчик попыток
+        message_headers = headers.copy()
         if delay:
-            await self.channel.declare_queue(
-                DELAY_QUEUE_NAME,
-                durable=True,
-                arguments={
-                    "x-message-ttl": delay,
-                    "x-dead-letter-exchange": "",
-                    "x-dead-letter-routing-key": QUEUE_NAME,
-                }
-            )
+            message_headers['x-retry-count'] = message_headers.get('x-retry-count', 0) + 1
 
-        # Создаем сообщение с заголовками
         message_obj = Message(
             body=message,
-            headers=headers or {}  # Используем переданные заголовки или пустой dict
+            headers=message_headers,
+            expiration=delay if delay else None
         )
 
+        target_queue = DELAY_QUEUE_NAME if delay else QUEUE_NAME
         await self.channel.default_exchange.publish(
             message_obj,
             routing_key=target_queue
         )
 
-    async def consume(self, callback, retries: int = 3):
+    async def consume(self, callback):
         if not self.channel:
             await self.connect()
 
-        queue = await self.channel.declare_queue(QUEUE_NAME, durable=True, arguments={"x-max-length": MAX_QUEUE_LENGTH})
-
-        async with queue.iterator() as queue_iter:
+        async with self.main_queue.iterator() as queue_iter:
             async for message in queue_iter:
-                async with message.process(requeue=False):
-                    attempt = 0
-                    backoffs = [1, 5, 20]  # секунды
-                    while attempt < retries:
-                        try:
-                            await callback(message)
-                            break
-                        except Exception as e:
-                            attempt += 1
-                            if attempt >= retries:
-                                print(f"❌ Message failed after {retries} attempts: {e}")
-                                # можно отправить в DLQ или логировать
-                                break
-                            else:
-                                delay = backoffs[attempt - 1]
-                                print(f"⚠ Retry {attempt} after {delay}s due to error: {e}")
-                                await asyncio.sleep(delay)
-                                # повторная публикация в очередь с delay
-                                await self.publish(message.body, delay=delay * 1000)
+                try:
+                    await callback(message)
+                    await message.ack()
+                except Exception as e:
+                    retry_count = message.headers.get('x-retry-count', 0)
+                    
+                    if retry_count >= MAX_RETRIES:
+                        print(f"❌ Message failed after {MAX_RETRIES} attempts: {e}")
+                        await message.ack()  # Удаляем сообщение после исчерпания попыток
+                    else:
+                        print(f"⚠ Retry {retry_count + 1} due to error: {e}")
+                        # Публикуем с задержкой с обновленным счетчиком
+                        await self.publish(
+                            message.body,
+                            headers=message.headers,
+                            delay=DEFAULT_DELAY
+                        )
+                        await message.ack()  # Подтверждаем исходное сообщение
 
+    async def close(self):
+        if self.connection:
+            await self.connection.close()
 
 # Глобальный объект
 rabbit = RabbitMQ()
