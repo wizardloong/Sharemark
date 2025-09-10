@@ -12,7 +12,7 @@ QUEUE_NAME = "shared_folders_queue"
 DELAY_QUEUE_NAME = "shared_folders_delay_queue"
 MAX_QUEUE_LENGTH = 1000
 DEFAULT_DELAY = 3000
-MAX_RETRIES = 3  # Максимальное количество попыток
+MAX_RETRIES = 5  # Максимальное количество попыток
 
 class RabbitMQ:
     def __init__(self):
@@ -31,7 +31,7 @@ class RabbitMQ:
         self.channel = await self.connection.channel()
         await self.channel.set_qos(prefetch_count=10)
 
-        # Объявляем очередь задержки сначала
+        # Объявляем очередь задержки
         self.delay_queue = await self.channel.declare_queue(
             DELAY_QUEUE_NAME,
             durable=True,
@@ -43,14 +43,12 @@ class RabbitMQ:
             }
         )
 
-        # Затем объявляем основную очередь
+        # Объявляем основную очередь
         self.main_queue = await self.channel.declare_queue(
             QUEUE_NAME,
             durable=True,
             arguments={
-                "x-max-length": MAX_QUEUE_LENGTH,
-                "x-dead-letter-exchange": "",
-                "x-dead-letter-routing-key": DELAY_QUEUE_NAME
+                "x-max-length": MAX_QUEUE_LENGTH
             }
         )
 
@@ -69,15 +67,16 @@ class RabbitMQ:
         if isinstance(message, str):
             message = message.encode()
 
-        # Копируем заголовки и добавляем счетчик попыток
+        # Копируем заголовки
         message_headers = headers.copy()
-        if delay:
-            message_headers['x-retry-count'] = message_headers.get('x-retry-count', 0) + 1
+        
+        # Устанавливаем expiration для задержки
+        expiration = delay if delay else None
 
         message_obj = Message(
             body=message,
             headers=message_headers,
-            expiration=delay if delay else None
+            expiration=expiration
         )
 
         target_queue = DELAY_QUEUE_NAME if delay else QUEUE_NAME
@@ -93,23 +92,35 @@ class RabbitMQ:
         async with self.main_queue.iterator() as queue_iter:
             async for message in queue_iter:
                 try:
+                    # Обрабатываем сообщение
                     await callback(message)
+                    # Подтверждаем успешную обработку
                     await message.ack()
+                    
                 except Exception as e:
+                    # Получаем текущее количество попыток
                     retry_count = message.headers.get('x-retry-count', 0)
                     
                     if retry_count >= MAX_RETRIES:
                         print(f"❌ Message failed after {MAX_RETRIES} attempts: {e}")
-                        await message.ack()  # Удаляем сообщение после исчерпания попыток
+                        # Удаляем сообщение после исчерпания попыток
+                        await message.ack()
                     else:
                         print(f"⚠ Retry {retry_count + 1} due to error: {e}")
-                        # Публикуем с задержкой с обновленным счетчиком
+                        
+                        # Создаем новые заголовки с увеличенным счетчиком
+                        new_headers = message.headers.copy()
+                        new_headers['x-retry-count'] = retry_count + 1
+                        
+                        # Публикуем сообщение с задержкой
                         await self.publish(
                             message.body,
-                            headers=message.headers,
+                            headers=new_headers,
                             delay=DEFAULT_DELAY
                         )
-                        await message.ack()  # Подтверждаем исходное сообщение
+                        
+                        # Подтверждаем исходное сообщение
+                        await message.ack()
 
     async def close(self):
         if self.connection:
